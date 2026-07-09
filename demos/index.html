@@ -4,495 +4,231 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>REDSecret · 在线图片隐写</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..600;1,9..144,400..600&family=Outfit:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <style>
-    /* ─── tokens: Open Design design system (Bodoni Moda + Space Grotesk) ─── */
     :root {
-      --bg:      #F5F5F0;
-      --surface: #FCFBF6;
-      --fg:      #1A1A1A;
-      --muted:   #6b6964;
-      --border:  #e8e5df;
-      --accent:  #E85D4E;
-      --green:   #16a34a;
+      --paper:#f7f3ec;--paper-2:#efe9df;--ink:#191511;--ink-2:#544c44;--ink-3:#6e6459;
+      --line:rgba(25,21,17,.13);--line-strong:rgba(25,21,17,.32);
+      --accent:#a63e0c;--accent-bright:#d9651f;--accent-soft:rgba(166,62,12,.08);
+      --green:#2d6a4f;
+      --font-display:'Fraunces',Georgia,serif;
+      --font-body:'Outfit',-apple-system,BlinkMacSystemFont,sans-serif;
+      --font-mono:'JetBrains Mono',SFMono-Regular,Menlo,monospace;
+      --ease:cubic-bezier(.16,1,.3,1);--radius:6px;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    html{scroll-behavior:smooth}
+    body{background:var(--paper);color:var(--ink);font-family:var(--font-body);font-weight:400;line-height:1.55;-webkit-font-smoothing:antialiased}
+    ::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:var(--paper-2)}::-webkit-scrollbar-thumb{background:var(--line-strong);border-radius:3px}
+    a{color:var(--accent);text-decoration:none;transition:color .25s var(--ease)}a:hover{color:var(--accent-bright)}
 
-      --accent-soft: color-mix(in oklch, var(--accent) 14%, transparent);
-      --fg-soft:     color-mix(in oklch, var(--fg) 6%, transparent);
+    .shell{max-width:720px;margin:0 auto;padding:0 32px 80px}
 
-      --font-display: 'Bodoni Moda', Georgia, 'Times New Roman', serif;
-      --font-body:    'Space Grotesk', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
-      --font-mono:    'SF Mono', 'Fira Code', ui-monospace, Menlo, monospace;
+    /* brand */
+    .brand-bar{display:flex;justify-content:space-between;align-items:baseline;padding:48px 0 0;font-family:var(--font-mono);font-size:12px;letter-spacing:.04em;color:var(--ink-3)}
 
-      --fs-h1: clamp(44px, 6vw, 76px);
-      --fs-h2: clamp(32px, 4vw, 48px);
-      --fs-h3: 22px;
-      --fs-lead: 19px;
-      --fs-body: 16px;
-      --fs-meta: 13px;
+    /* hero */
+    .hero{padding:56px 0 48px;border-bottom:2px solid var(--ink)}
+    .kicker{font-family:var(--font-mono);font-size:12px;letter-spacing:.15em;text-transform:uppercase;color:var(--accent);font-weight:500;margin:0 0 28px}
+    .hero .rule{width:60px;height:3px;background:var(--accent);margin:0 0 32px}
+    .hero h1{font-family:var(--font-display);font-weight:560;font-variation-settings:'opsz' 110;letter-spacing:-.018em;line-height:1.04;font-size:clamp(48px,7.6vw,80px)}
+    .hero .lede{font-size:18px;line-height:1.55;color:var(--ink-2);font-weight:300;max-width:48ch;margin:24px 0 0}
+    .hero-cta{display:flex;gap:12px;margin-top:32px;flex-wrap:wrap}
 
-      --gap-xs: 8px;
-      --gap-sm: 12px;
-      --gap-md: 20px;
-      --gap-lg: 32px;
-      --gap-xl: 56px;
-      --gap-2xl: 96px;
-      --container: 1120px;
-      --gutter: 32px;
+    /* buttons */
+    .btn{display:inline-flex;align-items:center;gap:8px;padding:14px 28px;border-radius:var(--radius);font-family:var(--font-body);font-size:15px;font-weight:600;letter-spacing:-.005em;cursor:pointer;transition:all .3s var(--ease);text-decoration:none;border:none}
+    .btn-primary{background:var(--accent);color:#fff}.btn-primary:hover{background:var(--accent-bright);transform:translateY(-1px);color:#fff}
+    .btn-secondary{background:transparent;color:var(--ink);border:1px solid var(--line-strong)}.btn-secondary:hover{border-color:var(--ink);transform:translateY(-1px)}
 
-      --radius: 10px;
-      --radius-lg: 16px;
-    }
+    /* divider */
+    .divider{border:none;border-top:1px solid var(--line);margin:48px 0 0}
 
-    /* ─── reset & base ──────────────────────────────────────────────── */
-    *, *::before, *::after { box-sizing: border-box; }
-    html { -webkit-text-size-adjust: 100%; }
-    body {
-      margin: 0;
-      background: var(--bg);
-      color: var(--fg);
-      font-family: var(--font-body);
-      font-size: var(--fs-body);
-      line-height: 1.55;
-      text-rendering: optimizeLegibility;
-      -webkit-font-smoothing: antialiased;
-    }
-    img, svg { display: block; max-width: 100%; }
-    a { color: inherit; text-decoration: none; }
-    button { font: inherit; cursor: pointer; }
-    p { text-wrap: pretty; }
-    h1, h2, h3, h4 { text-wrap: balance; }
+    /* section */
+    .section{padding:48px 0}
+    .section+.section{border-top:1px solid var(--line)}
+    .section-eyebrow{font-family:var(--font-mono);font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:var(--accent);font-weight:500;margin:0 0 16px}
+    .section-title{font-family:var(--font-display);font-weight:520;font-variation-settings:'opsz' 72;letter-spacing:-.01em;line-height:1.15;font-size:clamp(28px,4vw,40px);margin:0 0 8px}
+    .section-desc{font-size:15px;line-height:1.6;color:var(--ink-2);max-width:48ch;margin:0}
 
-    /* ─── grain texture overlay ──────────────────────────────────────── */
-    .grain-overlay {
-      position: fixed;
-      inset: 0;
-      pointer-events: none;
-      z-index: 9999;
-      opacity: 0.04;
-      mix-blend-mode: multiply;
-      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-      background-repeat: repeat;
-      background-size: 200px 200px;
-    }
+    /* feature grid */
+    .features{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-top:40px}
+    .feature{padding:24px 0}
+    .feature-icon{font-size:28px;margin-bottom:12px}
+    .feature-name{font-family:var(--font-mono);font-size:12px;letter-spacing:.1em;text-transform:uppercase;font-weight:500;color:var(--accent);margin-bottom:8px}
+    .feature h3{font-family:var(--font-display);font-weight:520;font-size:20px;margin:0 0 8px}
+    .feature p{font-size:14px;color:var(--ink-2);line-height:1.6;margin:0}
 
-    /* ─── layout primitives ─────────────────────────────────────────── */
-    .container {
-      max-width: var(--container);
-      margin-inline: auto;
-      padding-inline: var(--gutter);
-    }
-    .section {
-      padding-block: clamp(48px, 8vw, var(--gap-2xl));
-    }
-    .section + .section { border-top: 1px solid var(--border); }
-    .stack { display: flex; flex-direction: column; }
-    .stack > * + * { margin-top: var(--gap-md); }
-    .row { display: flex; align-items: center; gap: var(--gap-md); }
-    .row-between { display: flex; align-items: center; justify-content: space-between; gap: var(--gap-md); }
-    .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--gap-lg); }
-    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--gap-lg); }
-    @media (max-width: 920px) {
-      .grid-2, .grid-3 { grid-template-columns: 1fr; }
-    }
+    /* steps */
+    .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-top:40px}
+    .step-num{font-family:var(--font-mono);font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:var(--accent);font-weight:500;margin:0 0 12px;display:flex;align-items:center;gap:12px}
+    .step-num::after{content:'';flex:1;height:1px;background:var(--line)}
+    .step h3{font-family:var(--font-display);font-weight:520;font-size:20px;margin:0 0 8px}
+    .step p{font-size:14px;color:var(--ink-2);line-height:1.6;margin:0}
+    .step-code{margin-top:12px;padding:10px 14px;background:var(--paper-2);border:1px solid var(--line);border-radius:var(--radius);font-family:var(--font-mono);font-size:12px;color:var(--ink-3);overflow-x:auto;white-space:nowrap}
+    .step-code span{color:var(--accent)}
 
-    /* ─── type ──────────────────────────────────────────────────────── */
-    .h1, h1 { font-family: var(--font-display); font-size: var(--fs-h1); line-height: 1.04; letter-spacing: -0.02em; margin: 0; }
-    .h2, h2 { font-family: var(--font-display); font-size: var(--fs-h2); line-height: 1.1; letter-spacing: -0.015em; margin: 0; }
-    .h3, h3 { font-size: var(--fs-h3); font-weight: 600; line-height: 1.3; letter-spacing: -0.005em; margin: 0; }
-    .lead   { font-size: var(--fs-lead); line-height: 1.55; color: var(--muted); max-width: 60ch; margin: 0; }
-    .eyebrow {
-      font-family: var(--font-mono);
-      font-size: 12px;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      color: var(--accent);
-      margin: 0 0 var(--gap-md);
-    }
-    .meta { font-family: var(--font-mono); font-size: var(--fs-meta); color: var(--muted); }
-    .num  { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+    /* demo comparison */
+    .demo-compare{display:grid;grid-template-columns:1fr 1fr;gap:32px;margin-top:40px;align-items:start}
+    .demo-label{font-family:var(--font-mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3);margin-bottom:12px}
+    .demo-card{background:var(--paper-2);border:1px solid var(--line);border-radius:var(--radius);padding:24px}
+    .demo-card-header{display:flex;align-items:center;gap:8px;margin-bottom:16px}
+    .demo-card-icon{font-size:20px}
+    .demo-card-title{font-size:15px;font-weight:600}
+    .demo-card-body{font-family:var(--font-mono);font-size:13px;line-height:1.8}
+    .demo-card-line{color:var(--ink)}
+    .demo-card-line .down{color:var(--green)}
+    .demo-card-divider{height:1px;background:var(--line);margin:12px 0}
+    .demo-card-note{color:var(--ink-3);font-size:12px}
+    .demo-secret{display:flex;flex-direction:column;justify-content:center;align-items:center;min-height:240px;text-align:center}
+    .demo-secret-text{font-family:var(--font-display);font-size:22px;font-weight:500;line-height:1.8;color:var(--accent);margin-bottom:16px}
+    .demo-secret-hint{font-size:13px;color:var(--ink-3)}
+    .demo-secret-hint code{color:var(--accent);background:var(--accent-soft);padding:2px 8px;border-radius:4px;font-family:var(--font-mono);font-size:12px}
 
-    /* ─── chrome: nav + footer ──────────────────────────────────────── */
-    .topnav {
-      position: sticky; top: 0; z-index: 10;
-      background: color-mix(in oklch, var(--bg) 92%, transparent);
-      backdrop-filter: blur(12px);
-      border-bottom: 1px solid var(--border);
-    }
-    .topnav-inner { display: flex; align-items: center; justify-content: space-between; padding-block: 14px; }
-    .topnav .logo { font-family: var(--font-display); font-size: 19px; font-weight: 600; letter-spacing: -0.01em; }
-    .topnav nav { display: flex; gap: var(--gap-lg); }
-    .topnav nav a { font-size: 14px; color: var(--muted); transition: color 0.15s; }
-    .topnav nav a:hover { color: var(--fg); }
-    .pagefoot { padding-block: var(--gap-xl); color: var(--muted); font-size: 13px; border-top: 1px solid var(--border); }
-    .pagefoot .row-between { flex-wrap: wrap; gap: var(--gap-md); }
+    /* quote */
+    .quote-mark{font-family:var(--font-display);font-size:120px;line-height:.7;color:var(--accent);opacity:.15;margin-bottom:-20px}
+    .quote{font-family:var(--font-display);font-size:clamp(24px,3vw,32px);line-height:1.32;letter-spacing:-.01em;max-width:28ch;font-style:italic}
+    .quote-author{color:var(--ink-3);font-size:14px;margin-top:16px}
 
-    /* ─── buttons ───────────────────────────────────────────────────── */
-    .btn {
-      display: inline-flex; align-items: center; gap: 8px;
-      padding: 11px 20px;
-      border-radius: var(--radius);
-      border: 1px solid transparent;
-      font-size: 15px;
-      font-weight: 500;
-      letter-spacing: -0.005em;
-      transition: transform 0.05s ease, background 0.15s ease, border-color 0.15s ease;
-    }
-    .btn:active { transform: translateY(1px); }
-    .btn-primary { background: var(--accent); color: var(--surface); border-color: var(--accent); }
-    .btn-primary:hover { background: color-mix(in oklch, var(--accent) 88%, black); }
-    .btn-secondary { background: transparent; color: var(--fg); border-color: var(--border); }
-    .btn-secondary:hover { border-color: var(--fg); }
-    .btn-ghost { background: transparent; color: var(--fg); border-color: transparent; padding-inline: 8px; }
-    .btn-ghost:hover { color: var(--accent); }
-    .btn-arrow::after { content: '→'; transition: transform 0.15s ease; }
-    .btn-arrow:hover::after { transform: translateX(2px); }
+    /* footer */
+    .footer{border-top:1px solid var(--line);padding:32px 0;margin-top:48px;text-align:center;color:var(--ink-3);font-family:var(--font-mono);font-size:11.5px;letter-spacing:.04em}
+    .footer a{color:var(--accent)}
+    .footer-line{display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap}
+    .footer-dot{width:3px;height:3px;border-radius:50%;background:var(--ink-3)}
 
-    /* ─── card / surface ────────────────────────────────────────────── */
-    .card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-lg);
-      padding: 28px;
+    @media(max-width:600px){
+      .shell{padding:0 20px 60px}.brand-bar{padding:32px 0 0}.hero{padding:40px 0 36px}.hero h1{font-size:40px}.hero .lede{font-size:16px}
+      .features,.steps{grid-template-columns:1fr}.demo-compare{grid-template-columns:1fr}
     }
-    .card-flat { background: transparent; border: 0; padding: 0; }
-
-    /* ─── feature cell ──────────────────────────────────────────────── */
-    .feature .feature-mark {
-      width: 36px; height: 36px;
-      display: grid; place-items: center;
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      color: var(--accent);
-      margin-bottom: var(--gap-md);
-    }
-    .feature .feature-mark svg { width: 18px; height: 18px; }
-    .feature h3 { margin-bottom: 6px; }
-    .feature p  { margin: 0; color: var(--muted); font-size: 15px; }
-
-    /* ─── hero variants ─────────────────────────────────────────────── */
-    .hero          { padding-block: clamp(80px, 12vw, 160px); }
-    .hero-center   { text-align: center; max-width: 36ch; margin-inline: auto; }
-    .hero h1       { margin-bottom: var(--gap-md); }
-    .hero .lead    { margin-bottom: var(--gap-lg); }
-    .hero-cta      { display: inline-flex; gap: var(--gap-sm); flex-wrap: wrap; }
-    .hero-center .hero-cta { justify-content: center; }
-    .hero-split    { display: grid; grid-template-columns: 1fr 1fr; gap: var(--gap-2xl); align-items: center; }
-    @media (max-width: 920px) { .hero-split { grid-template-columns: 1fr; } }
-
-    /* ─── secret word reveal interaction ─────────────────────────────── */
-    .secret-word {
-      position: relative;
-      display: inline-block;
-      cursor: pointer;
-      color: var(--bg);
-      border-bottom: 2px dashed var(--border);
-      padding-bottom: 2px;
-      transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-    }
-    .secret-word::after {
-      content: '?';
-      position: absolute;
-      left: 50%; top: 50%;
-      transform: translate(-50%, -50%);
-      font-size: 0.5em;
-      color: var(--muted);
-      opacity: 1;
-      transition: opacity 0.4s;
-      font-style: normal;
-      font-family: var(--font-display);
-    }
-    .secret-word.revealed {
-      color: var(--accent);
-      text-shadow: 0 0 40px color-mix(in oklch, var(--accent) 30%, transparent);
-      border-bottom-color: transparent;
-    }
-    .secret-word.revealed::after { opacity: 0; }
-
-    /* ─── demo comparison ────────────────────────────────────────────── */
-    .demo-compare {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: var(--gap-xl);
-      margin-top: var(--gap-xl);
-      align-items: start;
-    }
-    @media (max-width: 920px) { .demo-compare { grid-template-columns: 1fr; } }
-
-    .demo-side-label {
-      font-family: var(--font-mono);
-      font-size: 11px;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      color: var(--muted);
-      margin-bottom: 14px;
-    }
-
-    .demo-surface-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-lg);
-      padding: 28px;
-    }
-
-    .demo-surface-header {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 16px;
-    }
-    .demo-surface-icon { font-size: 20px; }
-    .demo-surface-title { font-size: 15px; font-weight: 600; }
-
-    .demo-surface-body {
-      font-family: var(--font-mono);
-      font-size: 13px;
-      line-height: 1.8;
-    }
-    .demo-surface-line { color: var(--fg); }
-    .demo-surface-line .down { color: var(--green); }
-    .demo-surface-line .up { color: var(--accent); }
-    .demo-surface-divider { height: 1px; background: var(--border); margin: 12px 0; }
-    .demo-surface-note { color: var(--muted); font-size: 12px; }
-    .demo-surface-footer { color: var(--muted); font-size: 12px; }
-
-    .demo-secret {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-lg);
-      padding: 40px 32px;
-      text-align: center;
-      min-height: 340px;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-    }
-    .demo-secret-text {
-      font-family: var(--font-display);
-      font-size: 22px;
-      font-weight: 500;
-      line-height: 1.9;
-      color: var(--accent);
-      margin-bottom: 20px;
-    }
-    .demo-secret-hint {
-      font-size: 13px;
-      color: var(--muted);
-    }
-    .demo-secret-hint code {
-      color: var(--accent);
-      background: var(--accent-soft);
-      padding: 2px 8px;
-      border-radius: 4px;
-      font-family: var(--font-mono);
-      font-size: 12px;
-    }
-
-    /* ─── steps ─────────────────────────────────────────────────────── */
-    .steps {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: var(--gap-lg);
-      margin-top: var(--gap-xl);
-    }
-    @media (max-width: 920px) { .steps { grid-template-columns: 1fr; } }
-
-    .step-num {
-      font-family: var(--font-display);
-      font-size: 56px;
-      font-weight: 700;
-      color: var(--border);
-      line-height: 1;
-      margin-bottom: 14px;
-      letter-spacing: -2px;
-    }
-    .step h3 { margin-bottom: 8px; }
-    .step p { color: var(--muted); font-size: 14px; line-height: 1.7; margin-bottom: 14px; }
-
-    .step-code {
-      padding: 10px 14px;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      font-family: var(--font-mono);
-      font-size: 12px;
-      color: var(--muted);
-      overflow-x: auto;
-      white-space: nowrap;
-    }
-    .step-code span { color: var(--accent); }
-
-    /* ─── pull quote ─────────────────────────────────────────────────── */
-    .quote-mark {
-      font-family: var(--font-display);
-      font-size: 140px; line-height: 0.7;
-      color: var(--accent); opacity: 0.18;
-      margin-bottom: -28px;
-    }
-    .quote {
-      font-family: var(--font-display);
-      font-size: clamp(24px, 2.6vw, 32px);
-      line-height: 1.32;
-      letter-spacing: -0.01em;
-      max-width: 28ch;
-    }
-    .quote-author { color: var(--muted); font-size: 14px; margin-top: var(--gap-md); }
   </style>
 </head>
 <body>
-  <div class="grain-overlay" aria-hidden="true"></div>
 
-  <header class="topnav" data-od-id="topnav">
-    <div class="container topnav-inner">
-      <span class="logo">🔴 REDSecret</span>
-      <nav>
-        <a href="#features">特性</a>
-        <a href="#demo">演示</a>
-        <a href="https://github.com/cnjoe1130/REDSecret">GitHub</a>
-      </nav>
-      <a href="demos/tool.html" class="btn btn-primary">在线体验</a>
+<div class="shell">
+  <div class="brand-bar">
+    <span>◎ REDSecret</span>
+    <a href="https://github.com/cnjoe1130/REDSecret" target="_blank" rel="noreferrer">GitHub →</a>
+  </div>
+
+  <!-- Hero -->
+  <div class="hero">
+    <p class="kicker">Steganography · 图片隐写</p>
+    <div class="rule"></div>
+    <h1>把真心话藏起来</h1>
+    <p class="lede">在图片和文字中隐藏秘密信息。只有知道密钥的人，才能读出你藏起来的话。浏览器端运行，零依赖。</p>
+    <div class="hero-cta">
+      <a href="tool.html" class="btn btn-primary">在线体验 →</a>
+      <a href="https://github.com/cnjoe1130/REDSecret" class="btn btn-secondary">GitHub</a>
     </div>
-  </header>
+  </div>
 
-  <main id="content">
-    <!-- Hero -->
-    <section class="section hero" data-od-id="hero">
-      <div class="container hero-center">
-        <p class="eyebrow">OPEN SOURCE · STEGANOGRAPHY</p>
-        <h1>把<span class="secret-word" onclick="this.classList.toggle('revealed')">真心话</span>藏起来</h1>
-        <p class="lead">在图片和文字中隐藏秘密信息。只有知道密钥的人，才能读出你藏起来的话。</p>
-        <div class="hero-cta">
-          <a href="demos/tool.html" class="btn btn-primary">在线体验</a>
-          <a href="https://github.com/cnjoe1130/REDSecret" class="btn btn-secondary">GitHub</a>
-        </div>
+  <!-- Features -->
+  <div class="section">
+    <p class="section-eyebrow">三种隐写模式</p>
+    <h2 class="section-title">选择最适合你场景的方案</h2>
+    <p class="section-desc">从图片到文字，总有一种方式适合你。</p>
+    <div class="features">
+      <div class="feature">
+        <div class="feature-icon">◧</div>
+        <div class="feature-name">QR 隐写</div>
+        <h3>有标记的隐藏</h3>
+        <p>加密数据编码为QR码嵌入图片角落。有微小可见标记，但容错强，抗压缩抗损坏。</p>
       </div>
-    </section>
-
-    <!-- Features: 三种隐写方式 -->
-    <section class="section" data-od-id="features">
-      <div class="container stack" style="gap: 56px;">
-        <div style="max-width: 36ch;">
-          <p class="eyebrow">三种隐写方式</p>
-          <h2>选择最适合你场景的方案</h2>
-        </div>
-        <div class="grid-3">
-          <div class="feature card-flat">
-            <div class="feature-mark">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
-            </div>
-            <h3>像素隐写</h3>
-            <p>QIM 加密算法，将信息藏在图片像素中。肉眼完全不可见，适合 1v1 文件传输。</p>
-          </div>
-          <div class="feature card-flat">
-            <div class="feature-mark">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="4" height="4"/></svg>
-            </div>
-            <h3>QR 角标隐写</h3>
-            <p>加密二维码贴在图片角落，Reed-Solomon 纠错，抗压缩抗损坏。</p>
-          </div>
-          <div class="feature card-flat">
-            <div class="feature-mark">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 7h16M4 12h10M4 17h16"/></svg>
-            </div>
-            <h3>零宽字符隐写</h3>
-            <p>Unicode 零宽字符编码，藏在文字里，肉眼完全不可见。</p>
-          </div>
-        </div>
+      <div class="feature">
+        <div class="feature-icon">▣</div>
+        <div class="feature-name">LSB 隐写</div>
+        <h3>完全不可见</h3>
+        <p>数据藏在像素RGB的最低有效位。肉眼完全看不出差异，但必须用PNG原图传递。</p>
       </div>
-    </section>
-
-    <!-- Demo: 眼见不一定为实 -->
-    <section class="section" data-od-id="demo" id="demo">
-      <div class="container">
-        <div style="max-width: 36ch;">
-          <p class="eyebrow">眼见不一定为实</p>
-          <h2>同一张图，表面和实际可能完全不同</h2>
-        </div>
-        <div class="demo-compare">
-          <div class="demo-surface">
-            <div class="demo-side-label">你看到的</div>
-            <div class="demo-surface-card">
-              <div class="demo-surface-header">
-                <span class="demo-surface-icon">📊</span>
-                <span class="demo-surface-title">6.23 盘后复盘</span>
-              </div>
-              <div class="demo-surface-body">
-                <div class="demo-surface-line">上证 4106 <span class="down">(-1.37%)</span></div>
-                <div class="demo-surface-line">深成 15854 <span class="down">(-3.17%)</span></div>
-                <div class="demo-surface-line">创业 4192 <span class="down">(-3.84%)</span></div>
-                <div class="demo-surface-divider"></div>
-                <div class="demo-surface-note">消费电子领涨，半导体跟进</div>
-                <div class="demo-surface-note">北向资金净流出 42.3 亿</div>
-                <div class="demo-surface-divider"></div>
-                <div class="demo-surface-footer">📈 趋势偏空，观望为主</div>
-              </div>
-            </div>
-          </div>
-          <div class="demo-secret">
-            <div class="demo-side-label">实际藏的</div>
-            <div class="demo-secret-text">"上证失守4000，<br>我亏了三万"</div>
-            <div class="demo-secret-hint">密钥 <code>demo</code> 解密后</div>
-          </div>
-        </div>
+      <div class="feature">
+        <div class="feature-icon">ﾠ</div>
+        <div class="feature-name">零宽字符</div>
+        <h3>无需图片</h3>
+        <p>Unicode零宽字符编码，藏在任何文字里。粘贴到聊天、微博即可传递秘密。</p>
       </div>
-    </section>
-
-    <!-- Quote -->
-    <section class="section" data-od-id="quote">
-      <div class="container" style="max-width: 800px;">
-        <div class="quote-mark">"</div>
-        <blockquote class="quote">A secret makes a woman woman.</blockquote>
-        <p class="quote-author">— 《名侦探柯南》</p>
-      </div>
-    </section>
-
-    <!-- How: 三步开始 -->
-    <section class="section" data-od-id="how-it-works">
-      <div class="container">
-        <div style="max-width: 36ch;">
-          <p class="eyebrow">快速开始</p>
-          <h2>三步开始</h2>
-        </div>
-        <div class="steps">
-          <div class="step">
-            <div class="step-num">01</div>
-            <h3>安装</h3>
-            <p>一行命令，支持全平台。</p>
-            <div class="step-code"><span>$</span> pip install Pillow numpy qrcode</div>
-          </div>
-          <div class="step">
-            <div class="step-num">02</div>
-            <h3>加密</h3>
-            <p>输入密文 + 密钥，生成隐写图。</p>
-            <div class="step-code"><span>$</span> python encrypt.py "密文" --key "key"</div>
-          </div>
-          <div class="step">
-            <div class="step-num">03</div>
-            <h3>分享</h3>
-            <p>发图给对方，告诉 ta 密钥。</p>
-            <div class="step-code"><span>$</span> python decrypt.py img.png "key"</div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- CTA -->
-    <section class="section" data-od-id="cta-strip" style="text-align: center;">
-      <div class="container" style="max-width: 600px;">
-        <h2>开始隐藏你的秘密</h2>
-        <p class="lead" style="margin: 16px auto 32px;">开源免费，支持 macOS / Linux / Windows</p>
-        <div style="display: inline-flex; gap: 12px;">
-          <a href="https://github.com/cnjoe1130/REDSecret" class="btn btn-primary">Star on GitHub</a>
-          <a href="demos/tool.html" class="btn btn-secondary">在线体验</a>
-        </div>
-      </div>
-    </section>
-  </main>
-
-  <footer class="pagefoot" data-od-id="footer">
-    <div class="container row-between">
-      <span>© REDSecret 2026 · MIT License</span>
-      <span class="meta">cnjoe1130 · GitHub</span>
     </div>
-  </footer>
+  </div>
+
+  <!-- Demo -->
+  <div class="section">
+    <p class="section-eyebrow">眼见不一定为实</p>
+    <h2 class="section-title">同一段文字，表面和实际可能完全不同</h2>
+    <div class="demo-compare">
+      <div>
+        <div class="demo-label">你看到的</div>
+        <div class="demo-card">
+          <div class="demo-card-header">
+            <span class="demo-card-icon">📊</span>
+            <span class="demo-card-title">6.23 盘后复盘</span>
+          </div>
+          <div class="demo-card-body">
+            <div class="demo-card-line">上证 4106 <span class="down">(-1.37%)</span></div>
+            <div class="demo-card-line">深成 15854 <span class="down">(-3.17%)</span></div>
+            <div class="demo-card-line">创业 4192 <span class="down">(-3.84%)</span></div>
+            <div class="demo-card-divider"></div>
+            <div class="demo-card-note">消费电子领涨，半导体跟进</div>
+            <div class="demo-card-note">北向资金净流出 42.3 亿</div>
+          </div>
+        </div>
+      </div>
+      <div class="demo-card demo-secret">
+        <div class="demo-label">实际藏的</div>
+        <div class="demo-secret-text">"上证失守4000，<br>我亏了三万"</div>
+        <div class="demo-secret-hint">密钥 <code>demo</code> 解密后</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quote -->
+  <div class="section" style="text-align:center">
+    <div class="quote-mark">"</div>
+    <blockquote class="quote">A secret makes a woman woman.</blockquote>
+    <p class="quote-author">— 《名侦探柯南》</p>
+  </div>
+
+  <!-- How it works -->
+  <div class="section">
+    <p class="section-eyebrow">快速开始</p>
+    <h2 class="section-title">三步开始</h2>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">01</div>
+        <h3>打开工具</h3>
+        <p>浏览器直接打开，无需安装任何依赖。</p>
+        <div class="step-code"><span>→</span> tool.html</div>
+      </div>
+      <div class="step">
+        <div class="step-num">02</div>
+        <h3>加密</h3>
+        <p>上传图片（或输入文字），填写密文和密钥。</p>
+        <div class="step-code"><span>→</span> 选择模式 · 输入内容</div>
+      </div>
+      <div class="step">
+        <div class="step-num">03</div>
+        <h3>分享</h3>
+        <p>发送加密结果，告诉对方密钥即可。</p>
+        <div class="step-code"><span>→</span> 对方用密钥解密</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CTA -->
+  <div class="section" style="text-align:center">
+    <h2 class="section-title">开始隐藏你的秘密</h2>
+    <p class="section-desc" style="margin:16px auto 32px;text-align:center">开源免费，浏览器端运行，数据不上传服务器。</p>
+    <div style="display:inline-flex;gap:12px;flex-wrap:wrap;justify-content:center">
+      <a href="tool.html" class="btn btn-primary">在线体验 →</a>
+      <a href="https://github.com/cnjoe1130/REDSecret" class="btn btn-secondary">Star on GitHub</a>
+    </div>
+  </div>
+
+  <div class="footer">
+    <div class="footer-line">
+      REDSecret <span class="footer-dot"></span> 图片隐写加密 <span class="footer-dot"></span> <a href="https://github.com/cnjoe1130/REDSecret">GitHub</a>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
