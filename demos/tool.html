@@ -346,7 +346,7 @@ textarea{resize:vertical;min-height:80px;font-family:var(--font-mono);font-size:
     <button class="btn btn-decrypt" id="zw-dec-btn" onclick="doZwDecrypt()">解密提取密文</button>
     <div class="result" id="zw-dec-result" style="display:none">
       <p class="result-success">✓ 解密成功</p>
-      <div class="secret-text" id="zw-dec-text"></div>
+      <div class="secret-text" id="zw-dec-output"></div>
     </div>
     <div class="result" id="zw-dec-fail" style="display:none">
       <p class="result-fail">✗ 解密失败</p>
@@ -748,7 +748,7 @@ function doZwDecrypt() {
     const data = parsePayload(payload);
     if (!data) { show('zw-dec-fail'); return; }
     const plain = new TextDecoder().decode(xorCrypt(data, key));
-    document.getElementById('zw-dec-text').textContent = plain;
+    document.getElementById('zw-dec-output').textContent = plain;
     show('zw-dec-result');
   } catch (e) { show('zw-dec-fail'); }
 }
