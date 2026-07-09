@@ -162,8 +162,26 @@ textarea{resize:vertical;min-height:80px;font-family:var(--font-mono);font-size:
     </div>
   </div>
 
-  <!-- Tabs -->
-  <div class="tabs">
+  <!-- Mode Guide -->
+  <div style="margin:32px 0 0;padding:24px 28px;background:var(--paper-2);border:1px solid var(--line);border-radius:var(--radius);font-size:13.5px;line-height:1.7;color:var(--ink-2)">
+    <div style="font-family:var(--font-mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);font-weight:500;margin-bottom:12px">选择合适的模式</div>
+    <table style="width:100%;border-collapse:collapse;font-size:13px">
+      <tr style="border-bottom:1px solid var(--line)">
+        <td style="padding:8px 0;font-weight:600;color:var(--ink);white-space:nowrap">◧ QR 隐写</td>
+        <td style="padding:8px 0 8px 16px">有微小可见标记，容错强。适合不怕对方知道"这里有秘密"的场景</td>
+      </tr>
+      <tr style="border-bottom:1px solid var(--line)">
+        <td style="padding:8px 0;font-weight:600;color:var(--ink);white-space:nowrap">▣ LSB 隐写</td>
+        <td style="padding:8px 0 8px 16px">完全不可见，但必须用PNG原图传递，截图/压缩会损坏</td>
+      </tr>
+      <tr>
+        <td style="padding:8px 0;font-weight:600;color:var(--ink);white-space:nowrap">ﾠ 零宽字符</td>
+        <td style="padding:8px 0 8px 16px">无需图片，粘贴到聊天/微博即可传递。注意部分平台可能过滤零宽字符</td>
+      </tr>
+    </table>
+  </div>
+
+  <div class="tabs" style="margin-top:36px">
     <button class="tab active" onclick="switchTab('encrypt')">加密 Encrypt</button>
     <button class="tab" onclick="switchTab('decrypt')">解密 Decrypt</button>
   </div>
@@ -401,9 +419,8 @@ function setPos(el) {
 }
 
 // ============ IMAGE LOADING ============
-function setupUpload(zoneId, imgStore, key, onReady) {
+function setupUpload(zoneId) {
   const zone = document.getElementById(zoneId);
-  // Drag & drop
   zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('dragover'); });
   zone.addEventListener('dragleave', () => zone.classList.remove('dragover'));
   zone.addEventListener('drop', e => {
@@ -411,7 +428,6 @@ function setupUpload(zoneId, imgStore, key, onReady) {
     const input = zone.querySelector('input[type=file]');
     if (input && e.dataTransfer.files.length) { input.files = e.dataTransfer.files; input.dispatchEvent(new Event('change')); }
   });
-  // Also handle click
   zone.addEventListener('click', e => {
     if (e.target.tagName === 'INPUT') return;
     const input = zone.querySelector('input[type=file]');
@@ -419,7 +435,7 @@ function setupUpload(zoneId, imgStore, key, onReady) {
   });
 }
 
-function loadImage(input, imgStore, zoneId, btnId, callback) {
+function loadImage(input, imgStore, key, zoneId, btnId, callback) {
   const file = input.files[0];
   if (!file) return;
   const reader = new FileReader();
@@ -430,8 +446,8 @@ function loadImage(input, imgStore, zoneId, btnId, callback) {
       const zone = document.getElementById(zoneId);
       zone.classList.add('has-image');
       zone.innerHTML = `<img src="${e.target.result}"><input type="file" accept="image/*">`;
-      zone.querySelector('input').addEventListener('change', function() { loadImage(this, imgStore, zoneId, btnId, callback); });
-      setupUpload(zoneId, imgStore, key);
+      zone.querySelector('input').addEventListener('change', function() { loadImage(this, imgStore, key, zoneId, btnId, callback); });
+      setupUpload(zoneId);
       if (btnId) document.getElementById(btnId).disabled = false;
       if (callback) callback(img);
     };
@@ -767,47 +783,27 @@ function hide(id) { document.getElementById(id).style.display = 'none'; }
 
 // ============ INIT UPLOADS ============
 window.addEventListener('DOMContentLoaded', () => {
-  // QR uploads
-  const qrEncZone = document.getElementById('qr-enc-upload');
-  const qrEncInput = document.createElement('input');
-  qrEncInput.type = 'file'; qrEncInput.accept = 'image/*';
-  qrEncInput.addEventListener('change', function() {
-    loadImage(this, qrImg, 'enc', 'qr-enc-upload', null);
-    document.getElementById('qr-enc-btn').disabled = false;
-  });
-  qrEncZone.appendChild(qrEncInput);
-  setupUpload('qr-enc-upload');
+  // QR encrypt
+  initUploadZone('qr-enc-upload', qrImg, 'enc', 'qr-enc-btn', null);
+  // QR decrypt
+  initUploadZone('qr-dec-upload', qrImg, 'dec', 'qr-dec-btn', null);
+  // LSB encrypt
+  initUploadZone('lsb-enc-upload', lsbImg, 'enc', 'lsb-enc-btn', updateLsbCapacity);
+  // LSB decrypt
+  initUploadZone('lsb-dec-upload', lsbImg, 'dec', 'lsb-dec-btn', null);
 
-  const qrDecZone = document.getElementById('qr-dec-upload');
-  const qrDecInput = document.createElement('input');
-  qrDecInput.type = 'file'; qrDecInput.accept = 'image/*';
-  qrDecInput.addEventListener('change', function() {
-    loadImage(this, qrImg, 'dec', 'qr-dec-upload', null);
-    document.getElementById('qr-dec-btn').disabled = false;
-  });
-  qrDecZone.appendChild(qrDecInput);
-  setupUpload('qr-dec-upload');
-
-  // LSB uploads
-  const lsbEncZone = document.getElementById('lsb-enc-upload');
-  const lsbEncInput = document.createElement('input');
-  lsbEncInput.type = 'file'; lsbEncInput.accept = 'image/*';
-  lsbEncInput.addEventListener('change', function() {
-    loadImage(this, lsbImg, 'enc', 'lsb-enc-upload', updateLsbCapacity);
-    document.getElementById('lsb-enc-btn').disabled = false;
-  });
-  lsbEncZone.appendChild(lsbEncInput);
-  setupUpload('lsb-enc-upload');
-
-  const lsbDecZone = document.getElementById('lsb-dec-upload');
-  const lsbDecInput = document.createElement('input');
-  lsbDecInput.type = 'file'; lsbDecInput.accept = 'image/*';
-  lsbDecInput.addEventListener('change', function() {
-    loadImage(this, lsbImg, 'dec', 'lsb-dec-upload', null);
-    document.getElementById('lsb-dec-btn').disabled = false;
-  });
-  lsbDecZone.appendChild(lsbDecInput);
-  setupUpload('lsb-dec-upload');
+  function initUploadZone(zoneId, imgStore, key, btnId, callback) {
+    const zone = document.getElementById(zoneId);
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file'; fileInput.accept = 'image/*';
+    fileInput.style.cssText = 'position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%';
+    fileInput.addEventListener('change', function() {
+      loadImage(this, imgStore, key, zoneId, btnId, callback);
+    });
+    zone.style.position = 'relative';
+    zone.appendChild(fileInput);
+    setupUpload(zoneId);
+  }
 });
 </script>
 </body>
