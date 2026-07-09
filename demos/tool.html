@@ -7,124 +7,738 @@
 <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.4/build/qrcode.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
 <style>
-*{margin:0;padding:0;box-sizing:border-box}
-:root{--bg:#0a0a1a;--card:#12122a;--accent:#ff4d6a;--accent2:#7c3aed;--text:#e0e0f0;--sub:#8888aa;--border:#2a2a4a}
-body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;min-height:100vh;display:flex;flex-direction:column;align-items:center}
-.header{text-align:center;padding:40px 20px 20px}
-.header h1{font-size:28px;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:8px}
-.header p{color:var(--sub);font-size:14px}
-.tabs{display:flex;gap:0;margin:20px 0;border-radius:12px;overflow:hidden;border:1px solid var(--border)}
-.tab{padding:12px 32px;cursor:pointer;font-size:15px;font-weight:600;background:var(--card);color:var(--sub);transition:all .2s;border:none}
-.tab.active{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff}
-.panel{display:none;width:100%;max-width:560px;padding:0 20px 40px}
-.panel.active{display:block}
-.card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:24px;margin-bottom:16px}
-.card h3{font-size:16px;margin-bottom:12px;color:var(--accent)}
-label{display:block;font-size:13px;color:var(--sub);margin-bottom:6px;margin-top:12px}
-input,textarea{width:100%;padding:10px 14px;background:#1a1a3a;border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:14px;outline:none;transition:border .2s}
-input:focus,textarea:focus{border-color:var(--accent)}
-textarea{resize:vertical;min-height:60px;font-family:monospace}
-.upload-zone{border:2px dashed var(--border);border-radius:12px;padding:40px 20px;text-align:center;cursor:pointer;transition:all .2s;position:relative;overflow:hidden}
-.upload-zone:hover{border-color:var(--accent);background:rgba(255,77,106,.05)}
-.upload-zone.has-image{padding:0;border-style:solid}
-.upload-zone img{width:100%;border-radius:8px;display:block}
-.upload-zone p{color:var(--sub);font-size:14px}
-.upload-zone input{position:absolute;inset:0;opacity:0;cursor:pointer}
-.btn{width:100%;padding:14px;border:none;border-radius:10px;font-size:16px;font-weight:700;cursor:pointer;transition:all .2s;margin-top:16px}
-.btn-encrypt{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff}
-.btn-encrypt:hover{transform:translateY(-1px);box-shadow:0 4px 20px rgba(255,77,106,.3)}
-.btn-encrypt:disabled{opacity:.4;cursor:not-allowed;transform:none;box-shadow:none}
-.btn-decrypt{background:linear-gradient(135deg,#7c3aed,#3b82f6);color:#fff}
-.btn-decrypt:hover{transform:translateY(-1px);box-shadow:0 4px 20px rgba(124,58,237,.3)}
-.btn-decrypt:disabled{opacity:.4;cursor:not-allowed;transform:none;box-shadow:none}
-.result{text-align:center;padding:20px}
-.result img{max-width:100%;border-radius:12px;border:2px solid var(--accent);margin:12px 0}
-.result .secret-text{background:#1a1a3a;border:1px solid var(--accent2);border-radius:10px;padding:16px;font-family:monospace;font-size:15px;color:var(--accent);word-break:break-all;margin:12px 0}
-.download-btn{display:inline-block;padding:10px 24px;background:var(--accent2);color:#fff;border-radius:8px;text-decoration:none;font-weight:600;margin-top:8px}
-.position-picker{display:grid;grid-template-columns:repeat(3,40px);gap:4px;margin-top:8px}
-.position-picker .pos{width:40px;height:40px;border:2px solid var(--border);border-radius:6px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--sub);transition:all .2s}
-.position-picker .pos:hover{border-color:var(--accent)}
-.position-picker .pos.active{border-color:var(--accent);background:rgba(255,77,106,.15);color:var(--accent)}
-.note{font-size:12px;color:var(--sub);margin-top:8px;line-height:1.5}
-.footer{text-align:center;padding:30px;color:var(--sub);font-size:12px}
-.footer a{color:var(--accent2);text-decoration:none}
+/* ========== RESET & TOKENS ========== */
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --bg:         #05060f;
+  --bg-subtle:  #0a0c1a;
+  --surface:    rgba(12, 15, 35, 0.65);
+  --surface-solid: #0c0f23;
+  --glass:      rgba(18, 22, 50, 0.55);
+  --glass-border: rgba(255, 255, 255, 0.06);
+  --fg:         #e2e4f0;
+  --muted:      #6b6f8a;
+  --dim:        #3a3d56;
+  --border:     rgba(255, 255, 255, 0.08);
+  --accent:     #ff4d6a;
+  --accent2:    #7c3aed;
+  --accent3:    #3b82f6;
+  --glow:       rgba(255, 77, 106, 0.35);
+  --glow2:      rgba(124, 58, 237, 0.30);
+  --glow3:      rgba(59, 130, 246, 0.25);
+  --font-body:  -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Inter', 'Segoe UI', system-ui, sans-serif;
+  --font-mono:  'SF Mono', 'JetBrains Mono', 'IBM Plex Mono', 'Fira Code', ui-monospace, Menlo, monospace;
+  --radius-sm:  8px;
+  --radius-md:  14px;
+  --radius-lg:  20px;
+  --ease:       0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ========== SCROLLBAR ========== */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--dim); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--muted); }
+
+/* ========== BODY & BG ========== */
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-body);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow-x: hidden;
+  position: relative;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Animated gradient background — CSS only */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  background:
+    radial-gradient(ellipse 80% 50% at 20% 10%, rgba(124, 58, 237, 0.10) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 40% at 80% 90%, rgba(255, 77, 106, 0.08) 0%, transparent 55%),
+    radial-gradient(ellipse 50% 60% at 50% 50%, rgba(59, 130, 246, 0.05) 0%, transparent 70%);
+  animation: bgShift 20s ease-in-out infinite alternate;
+  pointer-events: none;
+}
+
+@keyframes bgShift {
+  0%   { opacity: 0.8; filter: hue-rotate(0deg); }
+  50%  { opacity: 1;   filter: hue-rotate(8deg); }
+  100% { opacity: 0.8; filter: hue-rotate(-5deg); }
+}
+
+/* Grid pattern overlay */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px);
+  background-size: 48px 48px;
+  mask-image: radial-gradient(ellipse 70% 60% at 50% 40%, black 20%, transparent 70%);
+  pointer-events: none;
+}
+
+/* ========== LAYOUT ========== */
+.content-wrapper {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 580px;
+  padding: 0 20px 60px;
+}
+
+/* ========== HERO ========== */
+.hero {
+  text-align: center;
+  padding: 56px 20px 32px;
+  position: relative;
+  z-index: 1;
+}
+
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 14px;
+  border-radius: 999px;
+  background: rgba(124, 58, 237, 0.12);
+  border: 1px solid rgba(124, 58, 237, 0.25);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #a78bfa;
+  margin-bottom: 20px;
+}
+
+.hero-badge::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #a78bfa;
+  animation: pulse-dot 2s ease-in-out infinite;
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 0.5; transform: scale(0.8); }
+  50%      { opacity: 1;   transform: scale(1.2); }
+}
+
+.hero h1 {
+  font-size: clamp(32px, 8vw, 48px);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+  background: linear-gradient(135deg, #ff4d6a 0%, #c084fc 40%, #60a5fa 70%, #34d399 100%);
+  background-size: 200% 200%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: gradientText 6s ease-in-out infinite;
+  margin-bottom: 12px;
+}
+
+@keyframes gradientText {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.hero p {
+  color: var(--muted);
+  font-size: 15px;
+  letter-spacing: 0.01em;
+}
+
+/* ========== GLASS CARD ========== */
+.glass {
+  background: var(--glass);
+  backdrop-filter: blur(24px) saturate(1.2);
+  -webkit-backdrop-filter: blur(24px) saturate(1.2);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  margin-bottom: 16px;
+  transition: border-color var(--ease), box-shadow var(--ease);
+}
+
+.glass:hover {
+  border-color: rgba(255, 255, 255, 0.10);
+}
+
+.glass-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.glass-label::before {
+  content: '';
+  width: 3px;
+  height: 14px;
+  border-radius: 2px;
+  background: linear-gradient(180deg, var(--accent), var(--accent2));
+}
+
+/* ========== TABS ========== */
+.tabs {
+  display: flex;
+  gap: 0;
+  margin: 24px 0 28px;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  border: 1px solid var(--glass-border);
+  background: var(--surface);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  position: relative;
+}
+
+.tab {
+  flex: 1;
+  padding: 13px 0;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  background: transparent;
+  color: var(--muted);
+  border: none;
+  transition: all var(--ease);
+  position: relative;
+  z-index: 1;
+}
+
+.tab:hover {
+  color: var(--fg);
+}
+
+.tab.active {
+  color: #fff;
+}
+
+.tab.active::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  border-radius: var(--radius-md);
+}
+
+/* ========== PANELS ========== */
+.panel {
+  display: none;
+}
+
+.panel.active {
+  display: block;
+  animation: panelIn 0.35s ease-out;
+}
+
+@keyframes panelIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ========== UPLOAD ZONE ========== */
+.upload-zone {
+  border: 2px dashed rgba(255, 255, 255, 0.10);
+  border-radius: var(--radius-md);
+  padding: 48px 24px;
+  text-align: center;
+  cursor: pointer;
+  transition: all var(--ease);
+  position: relative;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.01);
+}
+
+.upload-zone:hover {
+  border-color: var(--accent);
+  background: rgba(255, 77, 106, 0.04);
+  box-shadow: inset 0 0 30px rgba(255, 77, 106, 0.05);
+}
+
+.upload-zone.dragover {
+  border-color: var(--accent2);
+  background: rgba(124, 58, 237, 0.06);
+  box-shadow: inset 0 0 40px rgba(124, 58, 237, 0.08);
+}
+
+.upload-zone.has-image {
+  padding: 0;
+  border-style: solid;
+  border-color: var(--glass-border);
+}
+
+.upload-zone.has-image img {
+  width: 100%;
+  border-radius: calc(var(--radius-md) - 2px);
+  display: block;
+}
+
+.upload-icon {
+  width: 48px;
+  height: 48px;
+  margin: 0 auto 14px;
+  border-radius: 14px;
+  background: rgba(255, 77, 106, 0.08);
+  border: 1px solid rgba(255, 77, 106, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  transition: all var(--ease);
+}
+
+.upload-zone:hover .upload-icon {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 20px rgba(255, 77, 106, 0.15);
+}
+
+.upload-zone p {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.upload-zone p strong {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.upload-zone input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+/* ========== FORM INPUTS ========== */
+label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+  letter-spacing: 0.03em;
+  margin-bottom: 8px;
+  margin-top: 16px;
+}
+
+label:first-child { margin-top: 0; }
+
+.input-wrap {
+  position: relative;
+}
+
+.input-wrap::after {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: calc(var(--radius-sm) + 1px);
+  background: linear-gradient(135deg, transparent 40%, var(--accent2) 100%);
+  opacity: 0;
+  transition: opacity var(--ease);
+  z-index: -1;
+}
+
+.input-wrap:focus-within::after {
+  opacity: 0.4;
+}
+
+input[type="text"],
+textarea {
+  width: 100%;
+  padding: 12px 16px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--fg);
+  font-size: 14px;
+  font-family: var(--font-body);
+  outline: none;
+  transition: all var(--ease);
+}
+
+input[type="text"]:focus,
+textarea:focus {
+  border-color: rgba(124, 58, 237, 0.5);
+  background: rgba(124, 58, 237, 0.04);
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.08);
+}
+
+input[type="text"]::placeholder,
+textarea::placeholder {
+  color: var(--dim);
+}
+
+textarea {
+  resize: vertical;
+  min-height: 80px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+/* ========== POSITION PICKER ========== */
+.position-picker {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.pos {
+  aspect-ratio: 1;
+  border: 1.5px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  color: var(--dim);
+  background: rgba(255, 255, 255, 0.02);
+  transition: all var(--ease);
+}
+
+.pos:hover {
+  border-color: rgba(255, 77, 106, 0.4);
+  color: var(--muted);
+  background: rgba(255, 77, 106, 0.04);
+}
+
+.pos.active {
+  border-color: var(--accent);
+  background: rgba(255, 77, 106, 0.10);
+  color: var(--accent);
+  box-shadow: 0 0 12px rgba(255, 77, 106, 0.15);
+}
+
+/* ========== BUTTONS ========== */
+.btn {
+  width: 100%;
+  padding: 16px 24px;
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  transition: all var(--ease);
+  margin-top: 20px;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity var(--ease);
+  border-radius: inherit;
+}
+
+.btn:hover::before { opacity: 1; }
+
+.btn-encrypt {
+  background: linear-gradient(135deg, #ff4d6a, #c084fc);
+  color: #fff;
+  box-shadow: 0 2px 12px rgba(255, 77, 106, 0.2);
+}
+
+.btn-encrypt:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(255, 77, 106, 0.30);
+}
+
+.btn-encrypt::before {
+  background: linear-gradient(135deg, #ff6b82, #d4a0ff);
+}
+
+.btn-decrypt {
+  background: linear-gradient(135deg, #7c3aed, #3b82f6);
+  color: #fff;
+  box-shadow: 0 2px 12px rgba(124, 58, 237, 0.2);
+}
+
+.btn-decrypt:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(124, 58, 237, 0.30);
+}
+
+.btn-decrypt::before {
+  background: linear-gradient(135deg, #9165f0, #5b9af8);
+}
+
+.btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+.btn:disabled::before { display: none; }
+
+.btn:active:not(:disabled) {
+  transform: translateY(0px) scale(0.99);
+}
+
+/* ========== NOTE ========== */
+.note {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 12px;
+  line-height: 1.7;
+  padding-left: 12px;
+  border-left: 2px solid rgba(124, 58, 237, 0.25);
+}
+
+/* ========== RESULTS ========== */
+.result {
+  text-align: center;
+  padding: 24px;
+  margin-top: 16px;
+  animation: resultReveal 0.5s ease-out;
+  border-radius: var(--radius-lg);
+  background: var(--glass);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid var(--glass-border);
+}
+
+@keyframes resultReveal {
+  from { opacity: 0; transform: translateY(12px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.result img {
+  max-width: 100%;
+  border-radius: var(--radius-md);
+  border: 2px solid rgba(255, 77, 106, 0.25);
+  margin: 12px 0;
+}
+
+.result-success {
+  color: #34d399;
+  font-weight: 700;
+  font-size: 15px;
+  margin-bottom: 12px;
+}
+
+.result-fail {
+  color: #f87171;
+  font-weight: 700;
+  font-size: 15px;
+  margin-bottom: 8px;
+}
+
+.secret-text {
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(124, 58, 237, 0.2);
+  border-radius: var(--radius-sm);
+  padding: 16px;
+  font-family: var(--font-mono);
+  font-size: 14px;
+  color: #a78bfa;
+  word-break: break-all;
+  margin: 12px 0;
+  text-align: left;
+  line-height: 1.7;
+}
+
+.download-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 28px;
+  background: rgba(124, 58, 237, 0.15);
+  color: #c084fc;
+  border: 1px solid rgba(124, 58, 237, 0.3);
+  border-radius: var(--radius-sm);
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 13px;
+  transition: all var(--ease);
+  margin-top: 8px;
+}
+
+.download-btn:hover {
+  background: rgba(124, 58, 237, 0.25);
+  border-color: rgba(124, 58, 237, 0.5);
+  box-shadow: 0 4px 16px rgba(124, 58, 237, 0.2);
+  color: #e0d0ff;
+}
+
+/* ========== FOOTER ========== */
+.footer {
+  text-align: center;
+  padding: 32px 20px;
+  color: var(--dim);
+  font-size: 12px;
+  position: relative;
+  z-index: 1;
+}
+
+.footer a {
+  color: var(--muted);
+  text-decoration: none;
+  transition: color var(--ease);
+}
+
+.footer a:hover {
+  color: var(--accent2);
+}
+
+.footer .footer-line {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.footer .footer-dot {
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: var(--dim);
+}
+
+/* ========== RESPONSIVE ========== */
+@media (max-width: 480px) {
+  .hero { padding: 40px 16px 24px; }
+  .hero h1 { font-size: 28px; }
+  .content-wrapper { padding: 0 16px 48px; }
+  .glass { padding: 18px; }
+  .upload-zone { padding: 36px 16px; }
+  .tabs { margin: 16px 0 20px; }
+}
 </style>
 </head>
 <body>
 
-<div class="header">
-  <h1>🔐 REDSecret</h1>
-  <p>图片隐写加密工具 · 信息藏在像素里</p>
+<!-- ====== HERO ====== -->
+<div class="hero">
+  <div class="hero-badge">Steganography</div>
+  <h1>REDSecret</h1>
+  <p>信息藏在像素里 · 图片隐写加密</p>
 </div>
 
-<div class="tabs">
-  <button class="tab active" onclick="switchTab('encrypt')">🔒 加密</button>
-  <button class="tab" onclick="switchTab('decrypt')">🔓 解密</button>
-</div>
+<!-- ====== MAIN CONTENT ====== -->
+<div class="content-wrapper">
 
-<!-- 加密面板 -->
-<div class="panel active" id="panel-encrypt">
-  <div class="card">
-    <h3>① 上传图片</h3>
-    <div class="upload-zone" id="encrypt-upload">
-      <p>📷 点击或拖拽上传图片</p>
-      <input type="file" accept="image/*" id="encrypt-file" onchange="loadEncryptImage(this)">
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('encrypt')">🔒 加密</button>
+    <button class="tab" onclick="switchTab('decrypt')">🔓 解密</button>
+  </div>
+
+  <!-- ====== 加密面板 ====== -->
+  <div class="panel active" id="panel-encrypt">
+
+    <div class="glass">
+      <div class="glass-label">① 上传图片</div>
+      <div class="upload-zone" id="encrypt-upload">
+        <div class="upload-icon">📷</div>
+        <p><strong>点击上传</strong>或拖拽图片到此处</p>
+      </div>
+    </div>
+
+    <div class="glass">
+      <div class="glass-label">② 输入密文和密钥</div>
+      <label>密文内容</label>
+      <div class="input-wrap">
+        <textarea id="encrypt-text" placeholder="输入你想隐藏的文字..."></textarea>
+      </div>
+      <label>密钥（解密时需要）</label>
+      <div class="input-wrap">
+        <input type="text" id="encrypt-key" placeholder="设置一个密钥">
+      </div>
+      <label>QR码位置</label>
+      <div class="position-picker" id="pos-picker">
+        <div class="pos" data-pos="top-left" onclick="setPos(this)">↖</div>
+        <div class="pos" data-pos="top-center" onclick="setPos(this)">↑</div>
+        <div class="pos" data-pos="top-right" onclick="setPos(this)">↗</div>
+        <div class="pos" data-pos="center-left" onclick="setPos(this)">←</div>
+        <div class="pos" data-pos="center" onclick="setPos(this)">●</div>
+        <div class="pos" data-pos="center-right" onclick="setPos(this)">→</div>
+        <div class="pos" data-pos="bottom-left" onclick="setPos(this)">↙</div>
+        <div class="pos active" data-pos="bottom-center" onclick="setPos(this)">↓</div>
+        <div class="pos" data-pos="bottom-right" onclick="setPos(this)">↘</div>
+      </div>
+      <p class="note">QR码嵌入图片，肉眼几乎不可见。支持 Reed-Solomon 纠错，压缩后仍可解码。</p>
+    </div>
+
+    <button class="btn btn-encrypt" id="btn-encrypt" onclick="doEncrypt()" disabled>🔐 生成隐写图片</button>
+
+    <div class="result" id="encrypt-result" style="display:none">
+      <img id="encrypt-output">
+      <br>
+      <a class="download-btn" id="encrypt-download">📥 下载隐写图片</a>
     </div>
   </div>
-  <div class="card">
-    <h3>② 输入密文和密钥</h3>
-    <label>密文内容</label>
-    <textarea id="encrypt-text" placeholder="输入你想隐藏的文字..."></textarea>
-    <label>密钥（解密时需要）</label>
-    <input type="text" id="encrypt-key" placeholder="设置一个密钥">
-    <label>QR码位置</label>
-    <div class="position-picker" id="pos-picker">
-      <div class="pos" data-pos="top-left" onclick="setPos(this)">↖</div>
-      <div class="pos" data-pos="top-center" onclick="setPos(this)">↑</div>
-      <div class="pos" data-pos="top-right" onclick="setPos(this)">↗</div>
-      <div class="pos" data-pos="center-left" onclick="setPos(this)">←</div>
-      <div class="pos" data-pos="center" onclick="setPos(this)">●</div>
-      <div class="pos" data-pos="center-right" onclick="setPos(this)">→</div>
-      <div class="pos" data-pos="bottom-left" onclick="setPos(this)">↙</div>
-      <div class="pos active" data-pos="bottom-center" onclick="setPos(this)">↓</div>
-      <div class="pos" data-pos="bottom-right" onclick="setPos(this)">↘</div>
-    </div>
-    <p class="note">💡 QR码会被嵌入图片角落，肉眼几乎不可见。支持Reed-Solomon纠错，图片压缩后仍可解码。</p>
-  </div>
-  <button class="btn btn-encrypt" id="btn-encrypt" onclick="doEncrypt()" disabled>🔐 生成隐写图片</button>
-  <div class="result" id="encrypt-result" style="display:none">
-    <img id="encrypt-output">
-    <a class="download-btn" id="encrypt-download">📥 下载隐写图片</a>
-  </div>
-</div>
 
-<!-- 解密面板 -->
-<div class="panel" id="panel-decrypt">
-  <div class="card">
-    <h3>① 上传隐写图片</h3>
-    <div class="upload-zone" id="decrypt-upload">
-      <p>📷 点击或拖拽上传含密文的图片</p>
-      <input type="file" accept="image/*" id="decrypt-file" onchange="loadDecryptImage(this)">
+  <!-- ====== 解密面板 ====== -->
+  <div class="panel" id="panel-decrypt">
+
+    <div class="glass">
+      <div class="glass-label">① 上传隐写图片</div>
+      <div class="upload-zone" id="decrypt-upload">
+        <div class="upload-icon">🔍</div>
+        <p><strong>点击上传</strong>或拖拽含密文的图片</p>
+      </div>
+    </div>
+
+    <div class="glass">
+      <div class="glass-label">② 输入密钥解密</div>
+      <label>密钥</label>
+      <div class="input-wrap">
+        <input type="text" id="decrypt-key" placeholder="输入解密密钥">
+      </div>
+    </div>
+
+    <button class="btn btn-decrypt" id="btn-decrypt" onclick="doDecrypt()" disabled>🔓 解密提取密文</button>
+
+    <div class="result" id="decrypt-result" style="display:none">
+      <p class="result-success">✅ 解密成功 — 隐藏的密文</p>
+      <div class="secret-text" id="decrypt-text"></div>
+    </div>
+
+    <div class="result" id="decrypt-fail" style="display:none">
+      <p class="result-fail">❌ 解密失败</p>
+      <p class="note">可能原因：密钥错误、图片未包含隐写信息、或图片压缩过度导致QR码损坏</p>
     </div>
   </div>
-  <div class="card">
-    <h3>② 输入密钥解密</h3>
-    <label>密钥</label>
-    <input type="text" id="decrypt-key" placeholder="输入解密密钥">
-  </div>
-  <button class="btn btn-decrypt" id="btn-decrypt" onclick="doDecrypt()" disabled>🔓 解密提取密文</button>
-  <div class="result" id="decrypt-result" style="display:none">
-    <p style="color:var(--accent);font-weight:600">✅ 解密成功！隐藏的密文：</p>
-    <div class="secret-text" id="decrypt-text"></div>
-  </div>
-  <div class="result" id="decrypt-fail" style="display:none">
-    <p style="color:#ef4444;font-weight:600">❌ 解密失败</p>
-    <p class="note">可能原因：密钥错误、图片未包含隐写信息、或图片压缩过度导致QR码损坏</p>
-  </div>
+
 </div>
 
+<!-- ====== FOOTER ====== -->
 <div class="footer">
-  REDSecret · 图片隐写加密 · <a href="https://github.com/cnjoe1130/REDSecret">GitHub</a>
+  <div class="footer-line">
+    REDSecret <span class="footer-dot"></span> 图片隐写加密 <span class="footer-dot"></span> <a href="https://github.com/cnjoe1130/REDSecret">GitHub</a>
+  </div>
 </div>
 
 <script>
@@ -411,11 +1025,11 @@ function doDecrypt() {
 // === Drag & Drop ===
 ['encrypt-upload', 'decrypt-upload'].forEach(id => {
   const zone = document.getElementById(id);
-  zone.addEventListener('dragover', (e) => { e.preventDefault(); zone.style.borderColor = 'var(--accent)'; });
-  zone.addEventListener('dragleave', () => { zone.style.borderColor = ''; });
+  zone.addEventListener('dragover', (e) => { e.preventDefault(); zone.classList.add('dragover'); });
+  zone.addEventListener('dragleave', () => { zone.classList.remove('dragover'); });
   zone.addEventListener('drop', (e) => {
     e.preventDefault();
-    zone.style.borderColor = '';
+    zone.classList.remove('dragover');
     const input = zone.querySelector('input[type=file]');
     if (input && e.dataTransfer.files.length) {
       input.files = e.dataTransfer.files;
