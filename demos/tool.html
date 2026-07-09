@@ -3,323 +3,275 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>REDSecret · 在线图片隐写</title>
+<title>REDSecret · 图片隐写</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..600;1,9..144,400..600&family=Outfit:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.4/build/qrcode.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
 <style>
-/* ========== RESET & TOKENS ========== */
-*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
-
+/* ========== TOKENS — warm editorial ========== */
 :root {
-  --bg:         #05060f;
-  --bg-subtle:  #0a0c1a;
-  --surface:    rgba(12, 15, 35, 0.65);
-  --surface-solid: #0c0f23;
-  --glass:      rgba(18, 22, 50, 0.55);
-  --glass-border: rgba(255, 255, 255, 0.06);
-  --fg:         #e2e4f0;
-  --muted:      #6b6f8a;
-  --dim:        #3a3d56;
-  --border:     rgba(255, 255, 255, 0.08);
-  --accent:     #ff4d6a;
-  --accent2:    #7c3aed;
-  --accent3:    #3b82f6;
-  --glow:       rgba(255, 77, 106, 0.35);
-  --glow2:      rgba(124, 58, 237, 0.30);
-  --glow3:      rgba(59, 130, 246, 0.25);
-  --font-body:  -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Inter', 'Segoe UI', system-ui, sans-serif;
-  --font-mono:  'SF Mono', 'JetBrains Mono', 'IBM Plex Mono', 'Fira Code', ui-monospace, Menlo, monospace;
-  --radius-sm:  8px;
-  --radius-md:  14px;
-  --radius-lg:  20px;
-  --ease:       0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  --paper:      #f7f3ec;
+  --paper-2:    #efe9df;
+  --ink:        #191511;
+  --ink-2:      #544c44;
+  --ink-3:      #6e6459;
+  --line:       rgba(25, 21, 17, .13);
+  --line-strong: rgba(25, 21, 17, .32);
+  --accent:     #a63e0c;
+  --accent-bright: #d9651f;
+  --accent-soft: rgba(166, 62, 12, .08);
+  --font-display: 'Fraunces', Georgia, serif;
+  --font-body:  'Outfit', -apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif;
+  --font-mono:  'JetBrains Mono', SFMono-Regular, Menlo, monospace;
+  --ease:       cubic-bezier(.16, 1, .3, 1);
+  --radius:     6px;
+}
+
+/* ========== RESET ========== */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-weight: 400;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  min-height: 100vh;
 }
 
 /* ========== SCROLLBAR ========== */
 ::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--dim); border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: var(--muted); }
+::-webkit-scrollbar-track { background: var(--paper-2); }
+::-webkit-scrollbar-thumb { background: var(--line-strong); border-radius: 3px; }
 
-/* ========== BODY & BG ========== */
-html { scroll-behavior: smooth; }
+/* ========== LAYOUT SHELL ========== */
+.shell {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 0 32px 80px;
+}
 
-body {
-  background: var(--bg);
-  color: var(--fg);
-  font-family: var(--font-body);
-  min-height: 100vh;
+/* ========== HEADER / BRAND ========== */
+.brand-bar {
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  overflow-x: hidden;
-  position: relative;
-  line-height: 1.6;
-  -webkit-font-smoothing: antialiased;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 48px 0 0;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: .04em;
+  color: var(--ink-3);
 }
 
-/* Animated gradient background — CSS only */
-body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  z-index: 0;
-  background:
-    radial-gradient(ellipse 80% 50% at 20% 10%, rgba(124, 58, 237, 0.10) 0%, transparent 60%),
-    radial-gradient(ellipse 60% 40% at 80% 90%, rgba(255, 77, 106, 0.08) 0%, transparent 55%),
-    radial-gradient(ellipse 50% 60% at 50% 50%, rgba(59, 130, 246, 0.05) 0%, transparent 70%);
-  animation: bgShift 20s ease-in-out infinite alternate;
-  pointer-events: none;
+.brand-bar a {
+  color: var(--accent);
+  text-decoration: none;
+  transition: color .25s var(--ease);
 }
-
-@keyframes bgShift {
-  0%   { opacity: 0.8; filter: hue-rotate(0deg); }
-  50%  { opacity: 1;   filter: hue-rotate(8deg); }
-  100% { opacity: 0.8; filter: hue-rotate(-5deg); }
-}
-
-/* Grid pattern overlay */
-body::after {
-  content: '';
-  position: fixed;
-  inset: 0;
-  z-index: 0;
-  background-image:
-    linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px);
-  background-size: 48px 48px;
-  mask-image: radial-gradient(ellipse 70% 60% at 50% 40%, black 20%, transparent 70%);
-  pointer-events: none;
-}
-
-/* ========== LAYOUT ========== */
-.content-wrapper {
-  position: relative;
-  z-index: 1;
-  width: 100%;
-  max-width: 580px;
-  padding: 0 20px 60px;
-}
+.brand-bar a:hover { color: var(--accent-bright); }
 
 /* ========== HERO ========== */
 .hero {
-  text-align: center;
-  padding: 56px 20px 32px;
-  position: relative;
-  z-index: 1;
+  padding: 56px 0 48px;
+  border-bottom: 2px solid var(--ink);
 }
 
-.hero-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 5px 14px;
-  border-radius: 999px;
-  background: rgba(124, 58, 237, 0.12);
-  border: 1px solid rgba(124, 58, 237, 0.25);
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.06em;
+.kicker {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: .15em;
   text-transform: uppercase;
-  color: #a78bfa;
-  margin-bottom: 20px;
+  color: var(--accent);
+  font-weight: 500;
+  margin: 0 0 28px;
 }
 
-.hero-badge::before {
-  content: '';
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: #a78bfa;
-  animation: pulse-dot 2s ease-in-out infinite;
-}
-
-@keyframes pulse-dot {
-  0%, 100% { opacity: 0.5; transform: scale(0.8); }
-  50%      { opacity: 1;   transform: scale(1.2); }
+.hero .rule {
+  width: 60px;
+  height: 3px;
+  background: var(--accent);
+  margin: 0 0 32px;
 }
 
 .hero h1 {
-  font-size: clamp(32px, 8vw, 48px);
-  font-weight: 800;
-  letter-spacing: -0.03em;
-  line-height: 1.1;
-  background: linear-gradient(135deg, #ff4d6a 0%, #c084fc 40%, #60a5fa 70%, #34d399 100%);
-  background-size: 200% 200%;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  animation: gradientText 6s ease-in-out infinite;
-  margin-bottom: 12px;
+  font-family: var(--font-display);
+  font-weight: 560;
+  font-variation-settings: 'opsz' 110;
+  letter-spacing: -.018em;
+  line-height: 1.04;
+  font-size: clamp(48px, 7.6vw, 80px);
 }
 
-@keyframes gradientText {
-  0%   { background-position: 0% 50%; }
-  50%  { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
-}
-
-.hero p {
-  color: var(--muted);
-  font-size: 15px;
-  letter-spacing: 0.01em;
-}
-
-/* ========== GLASS CARD ========== */
-.glass {
-  background: var(--glass);
-  backdrop-filter: blur(24px) saturate(1.2);
-  -webkit-backdrop-filter: blur(24px) saturate(1.2);
-  border: 1px solid var(--glass-border);
-  border-radius: var(--radius-lg);
-  padding: 24px;
-  margin-bottom: 16px;
-  transition: border-color var(--ease), box-shadow var(--ease);
-}
-
-.glass:hover {
-  border-color: rgba(255, 255, 255, 0.10);
-}
-
-.glass-label {
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--muted);
-  margin-bottom: 16px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.glass-label::before {
-  content: '';
-  width: 3px;
-  height: 14px;
-  border-radius: 2px;
-  background: linear-gradient(180deg, var(--accent), var(--accent2));
+.hero .lede {
+  font-size: 18px;
+  line-height: 1.55;
+  color: var(--ink-2);
+  font-weight: 300;
+  max-width: 48ch;
+  margin: 24px 0 0;
 }
 
 /* ========== TABS ========== */
 .tabs {
   display: flex;
   gap: 0;
-  margin: 24px 0 28px;
-  border-radius: var(--radius-md);
-  overflow: hidden;
-  border: 1px solid var(--glass-border);
-  background: var(--surface);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  position: relative;
+  margin: 48px 0 0;
+  border-bottom: 1px solid var(--line-strong);
+  position: sticky;
+  top: 0;
+  background: var(--paper);
+  z-index: 10;
 }
 
 .tab {
   flex: 1;
-  padding: 13px 0;
+  padding: 18px 0;
   cursor: pointer;
-  font-size: 14px;
-  font-weight: 600;
-  letter-spacing: 0.01em;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: .1em;
+  text-transform: uppercase;
   background: transparent;
-  color: var(--muted);
+  color: var(--ink-3);
   border: none;
-  transition: all var(--ease);
+  border-bottom: 2px solid transparent;
+  transition: color .3s var(--ease), border-color .3s var(--ease);
   position: relative;
-  z-index: 1;
+  bottom: -1px;
 }
 
-.tab:hover {
-  color: var(--fg);
-}
+.tab:hover { color: var(--ink); }
 
 .tab.active {
-  color: #fff;
-}
-
-.tab.active::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  background: linear-gradient(135deg, var(--accent), var(--accent2));
-  border-radius: var(--radius-md);
+  color: var(--accent);
+  border-bottom-color: var(--accent);
 }
 
 /* ========== PANELS ========== */
-.panel {
-  display: none;
-}
+.panel { display: none; }
 
 .panel.active {
   display: block;
-  animation: panelIn 0.35s ease-out;
+  animation: panelIn .4s var(--ease) both;
 }
 
 @keyframes panelIn {
-  from { opacity: 0; transform: translateY(8px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* ========== SECTION DIVIDER ========== */
+.divider {
+  border: none;
+  border-top: 1px solid var(--line);
+  margin: 48px 0 0;
+}
+
+/* ========== STEP CARD ========== */
+.step-card {
+  padding: 48px 0 0;
+}
+
+.step-num {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: .15em;
+  text-transform: uppercase;
+  color: var(--accent);
+  font-weight: 500;
+  margin: 0 0 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.step-num::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--line);
+}
+
+.step-title {
+  font-family: var(--font-display);
+  font-weight: 520;
+  font-variation-settings: 'opsz' 72;
+  letter-spacing: -.01em;
+  line-height: 1.15;
+  font-size: clamp(24px, 3vw, 32px);
+  margin: 0 0 8px;
+}
+
+.step-desc {
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--ink-2);
+  max-width: 48ch;
+  margin: 0 0 28px;
 }
 
 /* ========== UPLOAD ZONE ========== */
 .upload-zone {
-  border: 2px dashed rgba(255, 255, 255, 0.10);
-  border-radius: var(--radius-md);
-  padding: 48px 24px;
+  border: 1.5px dashed var(--line-strong);
+  border-radius: var(--radius);
+  padding: 44px 24px;
   text-align: center;
   cursor: pointer;
-  transition: all var(--ease);
+  transition: all .3s var(--ease);
   position: relative;
   overflow: hidden;
-  background: rgba(255, 255, 255, 0.01);
+  background: var(--paper-2);
 }
 
 .upload-zone:hover {
   border-color: var(--accent);
-  background: rgba(255, 77, 106, 0.04);
-  box-shadow: inset 0 0 30px rgba(255, 77, 106, 0.05);
+  background: var(--accent-soft);
 }
 
 .upload-zone.dragover {
-  border-color: var(--accent2);
-  background: rgba(124, 58, 237, 0.06);
-  box-shadow: inset 0 0 40px rgba(124, 58, 237, 0.08);
+  border-color: var(--accent-bright);
+  background: var(--accent-soft);
+  border-style: solid;
 }
 
 .upload-zone.has-image {
   padding: 0;
   border-style: solid;
-  border-color: var(--glass-border);
+  border-color: var(--line);
 }
 
 .upload-zone.has-image img {
   width: 100%;
-  border-radius: calc(var(--radius-md) - 2px);
+  border-radius: calc(var(--radius) - 1px);
   display: block;
 }
 
 .upload-icon {
-  width: 48px;
-  height: 48px;
-  margin: 0 auto 14px;
-  border-radius: 14px;
-  background: rgba(255, 77, 106, 0.08);
-  border: 1px solid rgba(255, 77, 106, 0.15);
+  width: 44px;
+  height: 44px;
+  margin: 0 auto 12px;
+  border-radius: 8px;
+  background: var(--accent-soft);
+  border: 1px solid rgba(166, 62, 12, .15);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 22px;
-  transition: all var(--ease);
+  font-size: 20px;
 }
 
 .upload-zone:hover .upload-icon {
   transform: translateY(-2px);
-  box-shadow: 0 4px 20px rgba(255, 77, 106, 0.15);
 }
 
 .upload-zone p {
-  color: var(--muted);
+  color: var(--ink-3);
   font-size: 13px;
   line-height: 1.6;
 }
@@ -336,62 +288,44 @@ body::after {
   cursor: pointer;
 }
 
-/* ========== FORM INPUTS ========== */
+/* ========== FORM ELEMENTS ========== */
 label {
   display: block;
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--muted);
-  letter-spacing: 0.03em;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--ink-3);
   margin-bottom: 8px;
-  margin-top: 16px;
+  margin-top: 24px;
 }
 
-label:first-child { margin-top: 0; }
-
-.input-wrap {
-  position: relative;
-}
-
-.input-wrap::after {
-  content: '';
-  position: absolute;
-  inset: -1px;
-  border-radius: calc(var(--radius-sm) + 1px);
-  background: linear-gradient(135deg, transparent 40%, var(--accent2) 100%);
-  opacity: 0;
-  transition: opacity var(--ease);
-  z-index: -1;
-}
-
-.input-wrap:focus-within::after {
-  opacity: 0.4;
-}
+label:first-of-type { margin-top: 0; }
 
 input[type="text"],
 textarea {
   width: 100%;
   padding: 12px 16px;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  color: var(--fg);
-  font-size: 14px;
+  background: var(--paper-2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  color: var(--ink);
+  font-size: 15px;
   font-family: var(--font-body);
   outline: none;
-  transition: all var(--ease);
+  transition: border-color .3s var(--ease), box-shadow .3s var(--ease);
 }
 
 input[type="text"]:focus,
 textarea:focus {
-  border-color: rgba(124, 58, 237, 0.5);
-  background: rgba(124, 58, 237, 0.04);
-  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.08);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
 }
 
 input[type="text"]::placeholder,
 textarea::placeholder {
-  color: var(--dim);
+  color: var(--ink-3);
 }
 
 textarea {
@@ -412,158 +346,132 @@ textarea {
 
 .pos {
   aspect-ratio: 1;
-  border: 1.5px solid rgba(255, 255, 255, 0.08);
-  border-radius: var(--radius-sm);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 13px;
-  color: var(--dim);
-  background: rgba(255, 255, 255, 0.02);
-  transition: all var(--ease);
+  color: var(--ink-3);
+  background: var(--paper-2);
+  transition: all .3s var(--ease);
+  font-family: var(--font-mono);
 }
 
 .pos:hover {
-  border-color: rgba(255, 77, 106, 0.4);
-  color: var(--muted);
-  background: rgba(255, 77, 106, 0.04);
+  border-color: var(--accent);
+  color: var(--ink);
+  background: var(--accent-soft);
 }
 
 .pos.active {
   border-color: var(--accent);
-  background: rgba(255, 77, 106, 0.10);
-  color: var(--accent);
-  box-shadow: 0 0 12px rgba(255, 77, 106, 0.15);
+  background: var(--accent);
+  color: #fff;
+}
+
+/* ========== NOTE ========== */
+.note {
+  font-size: 12.5px;
+  color: var(--ink-3);
+  margin-top: 16px;
+  line-height: 1.7;
+  padding-left: 14px;
+  border-left: 2px solid var(--accent);
 }
 
 /* ========== BUTTONS ========== */
 .btn {
   width: 100%;
-  padding: 16px 24px;
+  padding: 18px 24px;
   border: none;
-  border-radius: var(--radius-md);
+  border-radius: var(--radius);
+  font-family: var(--font-body);
   font-size: 15px;
-  font-weight: 700;
-  letter-spacing: 0.01em;
+  font-weight: 600;
+  letter-spacing: -.005em;
   cursor: pointer;
-  transition: all var(--ease);
-  margin-top: 20px;
+  transition: all .3s var(--ease);
+  margin-top: 28px;
   position: relative;
-  overflow: hidden;
 }
-
-.btn::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  opacity: 0;
-  transition: opacity var(--ease);
-  border-radius: inherit;
-}
-
-.btn:hover::before { opacity: 1; }
 
 .btn-encrypt {
-  background: linear-gradient(135deg, #ff4d6a, #c084fc);
+  background: var(--accent);
   color: #fff;
-  box-shadow: 0 2px 12px rgba(255, 77, 106, 0.2);
 }
 
-.btn-encrypt:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 30px rgba(255, 77, 106, 0.30);
-}
-
-.btn-encrypt::before {
-  background: linear-gradient(135deg, #ff6b82, #d4a0ff);
+.btn-encrypt:hover:not(:disabled) {
+  background: var(--accent-bright);
+  transform: translateY(-1px);
 }
 
 .btn-decrypt {
-  background: linear-gradient(135deg, #7c3aed, #3b82f6);
-  color: #fff;
-  box-shadow: 0 2px 12px rgba(124, 58, 237, 0.2);
+  background: var(--ink);
+  color: var(--paper);
 }
 
-.btn-decrypt:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 30px rgba(124, 58, 237, 0.30);
-}
-
-.btn-decrypt::before {
-  background: linear-gradient(135deg, #9165f0, #5b9af8);
+.btn-decrypt:hover:not(:disabled) {
+  background: #2a241e;
+  transform: translateY(-1px);
 }
 
 .btn:disabled {
-  opacity: 0.35;
+  opacity: .4;
   cursor: not-allowed;
   transform: none !important;
-  box-shadow: none !important;
 }
-
-.btn:disabled::before { display: none; }
 
 .btn:active:not(:disabled) {
-  transform: translateY(0px) scale(0.99);
-}
-
-/* ========== NOTE ========== */
-.note {
-  font-size: 12px;
-  color: var(--muted);
-  margin-top: 12px;
-  line-height: 1.7;
-  padding-left: 12px;
-  border-left: 2px solid rgba(124, 58, 237, 0.25);
+  transform: translateY(0) scale(.99);
 }
 
 /* ========== RESULTS ========== */
 .result {
   text-align: center;
-  padding: 24px;
-  margin-top: 16px;
-  animation: resultReveal 0.5s ease-out;
-  border-radius: var(--radius-lg);
-  background: var(--glass);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
-  border: 1px solid var(--glass-border);
+  padding: 32px;
+  margin-top: 24px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--paper-2);
+  animation: resultReveal .5s var(--ease) both;
 }
 
 @keyframes resultReveal {
-  from { opacity: 0; transform: translateY(12px) scale(0.97); }
-  to   { opacity: 1; transform: translateY(0) scale(1); }
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: none; }
 }
 
 .result img {
   max-width: 100%;
-  border-radius: var(--radius-md);
-  border: 2px solid rgba(255, 77, 106, 0.25);
+  border-radius: var(--radius);
+  border: 1px solid var(--line);
   margin: 12px 0;
 }
 
 .result-success {
-  color: #34d399;
-  font-weight: 700;
+  color: #2d6a4f;
+  font-weight: 600;
   font-size: 15px;
   margin-bottom: 12px;
 }
 
 .result-fail {
-  color: #f87171;
-  font-weight: 700;
+  color: #b33a3a;
+  font-weight: 600;
   font-size: 15px;
   margin-bottom: 8px;
 }
 
 .secret-text {
-  background: rgba(0, 0, 0, 0.3);
-  border: 1px solid rgba(124, 58, 237, 0.2);
-  border-radius: var(--radius-sm);
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
   padding: 16px;
   font-family: var(--font-mono);
-  font-size: 14px;
-  color: #a78bfa;
+  font-size: 13px;
+  color: var(--accent);
   word-break: break-all;
   margin: 12px 0;
   text-align: left;
@@ -575,108 +483,119 @@ textarea {
   align-items: center;
   gap: 8px;
   padding: 12px 28px;
-  background: rgba(124, 58, 237, 0.15);
-  color: #c084fc;
-  border: 1px solid rgba(124, 58, 237, 0.3);
-  border-radius: var(--radius-sm);
+  background: var(--ink);
+  color: var(--paper);
+  border: none;
+  border-radius: var(--radius);
   text-decoration: none;
+  font-family: var(--font-body);
   font-weight: 600;
   font-size: 13px;
-  transition: all var(--ease);
+  transition: all .3s var(--ease);
   margin-top: 8px;
 }
 
 .download-btn:hover {
-  background: rgba(124, 58, 237, 0.25);
-  border-color: rgba(124, 58, 237, 0.5);
-  box-shadow: 0 4px 16px rgba(124, 58, 237, 0.2);
-  color: #e0d0ff;
+  background: #2a241e;
+  transform: translateY(-1px);
 }
 
 /* ========== FOOTER ========== */
 .footer {
+  border-top: 1px solid var(--line);
+  padding: 32px 0;
+  margin-top: 64px;
   text-align: center;
-  padding: 32px 20px;
-  color: var(--dim);
-  font-size: 12px;
-  position: relative;
-  z-index: 1;
+  color: var(--ink-3);
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  letter-spacing: .04em;
 }
 
 .footer a {
-  color: var(--muted);
+  color: var(--accent);
   text-decoration: none;
-  transition: color var(--ease);
+  transition: color .25s var(--ease);
 }
 
-.footer a:hover {
-  color: var(--accent2);
-}
+.footer a:hover { color: var(--accent-bright); }
 
-.footer .footer-line {
+.footer-line {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
-.footer .footer-dot {
+.footer-dot {
   width: 3px;
   height: 3px;
   border-radius: 50%;
-  background: var(--dim);
+  background: var(--ink-3);
 }
 
 /* ========== RESPONSIVE ========== */
-@media (max-width: 480px) {
-  .hero { padding: 40px 16px 24px; }
-  .hero h1 { font-size: 28px; }
-  .content-wrapper { padding: 0 16px 48px; }
-  .glass { padding: 18px; }
-  .upload-zone { padding: 36px 16px; }
-  .tabs { margin: 16px 0 20px; }
+@media (max-width: 600px) {
+  .shell { padding: 0 20px 60px; }
+  .brand-bar { padding: 32px 0 0; }
+  .hero { padding: 40px 0 36px; }
+  .hero h1 { font-size: 40px; }
+  .hero .lede { font-size: 16px; }
+  .tabs { margin-top: 32px; }
+  .tab { font-size: 12px; padding: 14px 0; }
+  .step-card { padding: 36px 0 0; }
+  .upload-zone { padding: 32px 16px; }
 }
 </style>
 </head>
 <body>
 
-<!-- ====== HERO ====== -->
-<div class="hero">
-  <div class="hero-badge">Steganography</div>
-  <h1>REDSecret</h1>
-  <p>信息藏在像素里 · 图片隐写加密</p>
-</div>
+<!-- ====== HEADER ====== -->
+<div class="shell">
+  <div class="brand-bar">
+    <span>◎ REDSecret</span>
+    <a href="https://github.com/cnjoe1130/REDSecret" target="_blank" rel="noreferrer">GitHub →</a>
+  </div>
 
-<!-- ====== MAIN CONTENT ====== -->
-<div class="content-wrapper">
+  <!-- ====== HERO ====== -->
+  <div class="hero">
+    <p class="kicker">Steganography · 图片隐写</p>
+    <div class="rule"></div>
+    <h1>藏在像素里的秘密</h1>
+    <p class="lede">把文字编码为 QR 码，嵌入图片。肉眼不可见，密钥解密后还原。</p>
+  </div>
 
+  <!-- ====== TABS ====== -->
   <div class="tabs">
-    <button class="tab active" onclick="switchTab('encrypt')">🔒 加密</button>
-    <button class="tab" onclick="switchTab('decrypt')">🔓 解密</button>
+    <button class="tab active" onclick="switchTab('encrypt')">加密 Encrypt</button>
+    <button class="tab" onclick="switchTab('decrypt')">解密 Decrypt</button>
   </div>
 
   <!-- ====== 加密面板 ====== -->
   <div class="panel active" id="panel-encrypt">
 
-    <div class="glass">
-      <div class="glass-label">① 上传图片</div>
+    <div class="step-card">
+      <div class="step-num">Step 01</div>
+      <h2 class="step-title">选择底图</h2>
+      <p class="step-desc">上传一张图片作为载体。QR 码将嵌入其中，肉眼几乎不可见。</p>
       <div class="upload-zone" id="encrypt-upload">
         <div class="upload-icon">📷</div>
-        <p><strong>点击上传</strong>或拖拽图片到此处</p>
+        <p><strong>点击上传</strong> 或拖拽图片到此处</p>
       </div>
     </div>
 
-    <div class="glass">
-      <div class="glass-label">② 输入密文和密钥</div>
+    <hr class="divider">
+
+    <div class="step-card">
+      <div class="step-num">Step 02</div>
+      <h2 class="step-title">填写内容</h2>
+      <p class="step-desc">输入要隐藏的文字，并设置解密密钥。</p>
       <label>密文内容</label>
-      <div class="input-wrap">
-        <textarea id="encrypt-text" placeholder="输入你想隐藏的文字..."></textarea>
-      </div>
-      <label>密钥（解密时需要）</label>
-      <div class="input-wrap">
-        <input type="text" id="encrypt-key" placeholder="设置一个密钥">
-      </div>
-      <label>QR码位置</label>
+      <textarea id="encrypt-text" placeholder="输入你想隐藏的文字..."></textarea>
+      <label>密钥</label>
+      <input type="text" id="encrypt-key" placeholder="设置一个密钥，解密时需要">
+      <label>QR 码位置</label>
       <div class="position-picker" id="pos-picker">
         <div class="pos" data-pos="top-left" onclick="setPos(this)">↖</div>
         <div class="pos" data-pos="top-center" onclick="setPos(this)">↑</div>
@@ -688,57 +607,61 @@ textarea {
         <div class="pos active" data-pos="bottom-center" onclick="setPos(this)">↓</div>
         <div class="pos" data-pos="bottom-right" onclick="setPos(this)">↘</div>
       </div>
-      <p class="note">QR码嵌入图片，肉眼几乎不可见。支持 Reed-Solomon 纠错，压缩后仍可解码。</p>
+      <p class="note">QR 码嵌入图片中，使用 Reed-Solomon 纠错。选择远离主体的位置以保证隐蔽性。</p>
     </div>
 
-    <button class="btn btn-encrypt" id="btn-encrypt" onclick="doEncrypt()" disabled>🔐 生成隐写图片</button>
+    <button class="btn btn-encrypt" id="btn-encrypt" onclick="doEncrypt()" disabled>生成隐写图片</button>
 
     <div class="result" id="encrypt-result" style="display:none">
       <img id="encrypt-output">
       <br>
-      <a class="download-btn" id="encrypt-download">📥 下载隐写图片</a>
+      <a class="download-btn" id="encrypt-download">下载隐写图片</a>
     </div>
   </div>
 
   <!-- ====== 解密面板 ====== -->
   <div class="panel" id="panel-decrypt">
 
-    <div class="glass">
-      <div class="glass-label">① 上传隐写图片</div>
+    <div class="step-card">
+      <div class="step-num">Step 01</div>
+      <h2 class="step-title">选择图片</h2>
+      <p class="step-desc">上传包含隐写信息的图片。</p>
       <div class="upload-zone" id="decrypt-upload">
         <div class="upload-icon">🔍</div>
-        <p><strong>点击上传</strong>或拖拽含密文的图片</p>
+        <p><strong>点击上传</strong> 或拖拽含密文的图片</p>
       </div>
     </div>
 
-    <div class="glass">
-      <div class="glass-label">② 输入密钥解密</div>
+    <hr class="divider">
+
+    <div class="step-card">
+      <div class="step-num">Step 02</div>
+      <h2 class="step-title">输入密钥</h2>
+      <p class="step-desc">输入加密时设置的密钥来解密。</p>
       <label>密钥</label>
-      <div class="input-wrap">
-        <input type="text" id="decrypt-key" placeholder="输入解密密钥">
-      </div>
+      <input type="text" id="decrypt-key" placeholder="输入解密密钥">
     </div>
 
-    <button class="btn btn-decrypt" id="btn-decrypt" onclick="doDecrypt()" disabled>🔓 解密提取密文</button>
+    <button class="btn btn-decrypt" id="btn-decrypt" onclick="doDecrypt()" disabled>解密提取密文</button>
 
     <div class="result" id="decrypt-result" style="display:none">
-      <p class="result-success">✅ 解密成功 — 隐藏的密文</p>
+      <p class="result-success">✓ 解密成功</p>
       <div class="secret-text" id="decrypt-text"></div>
     </div>
 
     <div class="result" id="decrypt-fail" style="display:none">
-      <p class="result-fail">❌ 解密失败</p>
-      <p class="note">可能原因：密钥错误、图片未包含隐写信息、或图片压缩过度导致QR码损坏</p>
+      <p class="result-fail">✗ 解密失败</p>
+      <p class="note">可能原因：密钥错误、图片未包含隐写信息、或图片压缩过度导致 QR 码损坏。</p>
     </div>
   </div>
 
-</div>
-
-<!-- ====== FOOTER ====== -->
-<div class="footer">
-  <div class="footer-line">
-    REDSecret <span class="footer-dot"></span> 图片隐写加密 <span class="footer-dot"></span> <a href="https://github.com/cnjoe1130/REDSecret">GitHub</a>
+  <!-- ====== FOOTER ====== -->
+  <div class="footer">
+    <div class="footer-line">
+      REDSecret <span class="footer-dot"></span> 图片隐写加密 <span class="footer-dot"></span> <a href="https://github.com/cnjoe1130/REDSecret">GitHub</a>
+    </div>
   </div>
+
 </div>
 
 <script>
@@ -928,11 +851,11 @@ async function doEncrypt() {
 
     // 4. Calculate position and draw QR
     const pos = calcQRPosition(canvas.width, canvas.height, qrCanvas.width, qrCanvas.height, qrPosition);
-    
+
     // Draw white background for QR
     ctx.fillStyle = 'rgba(255,255,255,0.9)';
     ctx.fillRect(pos.x - 2, pos.y - 2, pos.w + 4, pos.h + 4);
-    
+
     // Draw QR code
     ctx.drawImage(qrCanvas, pos.x, pos.y, pos.w, pos.h);
 
@@ -947,7 +870,7 @@ async function doEncrypt() {
   }
 
   btn.disabled = false;
-  btn.textContent = '🔐 生成隐写图片';
+  btn.textContent = '生成隐写图片';
 }
 
 // === Decrypt ===
@@ -1019,7 +942,7 @@ function doDecrypt() {
   }
 
   btn.disabled = false;
-  btn.textContent = '🔓 解密提取密文';
+  btn.textContent = '解密提取密文';
 }
 
 // === Drag & Drop ===
