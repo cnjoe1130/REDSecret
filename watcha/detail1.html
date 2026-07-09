@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>REDSecret Detail 1 - 真心话图卡</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    width: 1200px;
+    height: 630px;
+    background: #1a1a2e;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-family: 'SF Pro Display', -apple-system, 'Helvetica Neue', sans-serif;
+    overflow: hidden;
+    position: relative;
+  }
+  
+  .page-title {
+    font-size: 14px;
+    color: rgba(255,255,255,0.25);
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    margin-bottom: 32px;
+    text-align: center;
+  }
+  
+  .cards-row {
+    display: flex;
+    gap: 40px;
+    align-items: center;
+  }
+  
+  .card {
+    width: 440px;
+    height: 340px;
+    border-radius: 14px;
+    overflow: hidden;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  /* Card 1: Surface */
+  .card-a {
+    background: #16213e;
+    border: 1px solid rgba(255,255,255,0.06);
+    box-shadow: 0 16px 48px rgba(0,0,0,0.3);
+  }
+  .card-a .card-header {
+    padding: 28px 32px 0;
+  }
+  .card-a .card-badge {
+    display: inline-block;
+    font-size: 10px;
+    color: rgba(255,255,255,0.3);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    border: 1px solid rgba(255,255,255,0.1);
+    padding: 4px 10px;
+    border-radius: 4px;
+    margin-bottom: 14px;
+  }
+  .card-a .card-headline {
+    font-size: 26px;
+    font-weight: 700;
+    color: #ffffff;
+    margin-bottom: 6px;
+  }
+  .card-a .card-sub {
+    font-size: 13px;
+    color: rgba(255,255,255,0.3);
+    line-height: 1.5;
+  }
+  .card-a .card-body {
+    flex: 1;
+    padding: 20px 32px 28px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+  }
+  .card-a .stat-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+  }
+  .card-a .stat {
+    text-align: center;
+  }
+  .card-a .stat-value {
+    font-size: 22px;
+    font-weight: 700;
+    color: #ffffff;
+  }
+  .card-a .stat-value.green {
+    color: #2ed573;
+  }
+  .card-a .stat-value.red-text {
+    color: #ff4757;
+  }
+  .card-a .stat-label {
+    font-size: 11px;
+    color: rgba(255,255,255,0.25);
+    margin-top: 4px;
+  }
+  .card-a .mini-chart {
+    flex: 1;
+    margin: 0 24px;
+    display: flex;
+    align-items: flex-end;
+    gap: 5px;
+    height: 80px;
+  }
+  .card-a .mini-chart .bar {
+    flex: 1;
+    background: rgba(255,71,87,0.15);
+    border-radius: 2px 2px 0 0;
+  }
+  .card-a .mini-chart .bar.up {
+    background: rgba(46,213,115,0.3);
+  }
+  
+  /* Arrow between cards */
+  .arrow-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+  }
+  .arrow-line {
+    width: 60px;
+    height: 2px;
+    background: rgba(255,71,87,0.4);
+    position: relative;
+  }
+  .arrow-line::after {
+    content: '';
+    position: absolute;
+    right: -1px;
+    top: -4px;
+    width: 0;
+    height: 0;
+    border-left: 8px solid rgba(255,71,87,0.4);
+    border-top: 5px solid transparent;
+    border-bottom: 5px solid transparent;
+  }
+  .arrow-label {
+    font-size: 11px;
+    color: rgba(255,255,255,0.25);
+    letter-spacing: 1px;
+  }
+  
+  /* Card 2: With hidden layer hint */
+  .card-b {
+    background: #16213e;
+    border: 1px solid rgba(255,71,87,0.15);
+    box-shadow: 0 16px 48px rgba(0,0,0,0.3), 0 0 0 1px rgba(255,71,87,0.05);
+  }
+  .card-b .card-header {
+    padding: 28px 32px 0;
+  }
+  .card-b .card-badge {
+    display: inline-block;
+    font-size: 10px;
+    color: #ff4757;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    border: 1px solid rgba(255,71,87,0.3);
+    padding: 4px 10px;
+    border-radius: 4px;
+    margin-bottom: 14px;
+  }
+  .card-b .card-headline {
+    font-size: 26px;
+    font-weight: 700;
+    color: #ffffff;
+    margin-bottom: 6px;
+  }
+  .card-b .card-sub {
+    font-size: 13px;
+    color: rgba(255,255,255,0.3);
+    line-height: 1.5;
+  }
+  .card-b .card-body {
+    flex: 1;
+    padding: 20px 32px 28px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
+  .card-b .hidden-indicator {
+    width: 120px;
+    height: 120px;
+    border: 2px dashed rgba(255,71,87,0.3);
+    border-radius: 50%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 16px;
+  }
+  .card-b .hidden-indicator svg {
+    width: 32px;
+    height: 32px;
+    margin-bottom: 6px;
+  }
+  .card-b .hidden-indicator .icon-text {
+    font-size: 10px;
+    color: rgba(255,71,87,0.5);
+    letter-spacing: 1px;
+  }
+  .card-b .hidden-hint {
+    font-size: 13px;
+    color: rgba(255,71,87,0.5);
+    text-align: center;
+    line-height: 1.5;
+  }
+  
+  /* Bottom label */
+  .bottom-label {
+    margin-top: 28px;
+    font-size: 13px;
+    color: rgba(255,255,255,0.2);
+    letter-spacing: 2px;
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+  <div class="page-title">Secret Truth Card · 真心话图卡</div>
+  
+  <div class="cards-row">
+    <div class="card card-a">
+      <div class="card-header">
+        <div class="card-badge">表层 · Surface</div>
+        <div class="card-headline">本周市场分析</div>
+        <div class="card-sub">公开分享的数据卡片，看起来完全正常</div>
+      </div>
+      <div class="card-body">
+        <div class="stat-row">
+          <div class="stat">
+            <div class="stat-value green">+3.2%</div>
+            <div class="stat-label">涨幅</div>
+          </div>
+          <div class="mini-chart">
+            <div class="bar" style="height:30%"></div>
+            <div class="bar up" style="height:50%"></div>
+            <div class="bar up" style="height:70%"></div>
+            <div class="bar up" style="height:55%"></div>
+            <div class="bar" style="height:40%"></div>
+            <div class="bar up" style="height:85%"></div>
+            <div class="bar" style="height:60%"></div>
+          </div>
+          <div class="stat">
+            <div class="stat-value">¥38.6</div>
+            <div class="stat-label">收盘价</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="arrow-section">
+      <div class="arrow-line"></div>
+      <div class="arrow-label">隐写嵌入</div>
+    </div>
+    
+    <div class="card card-b">
+      <div class="card-header">
+        <div class="card-badge">暗层 · Hidden</div>
+        <div class="card-headline">表面之下</div>
+        <div class="card-sub">图片中隐藏着只有接收者能读取的信息</div>
+      </div>
+      <div class="card-body">
+        <div class="hidden-indicator">
+          <svg viewBox="0 0 32 32" fill="none" stroke="#ff4757" stroke-width="1.5" opacity="0.6">
+            <path d="M3 16c3.5-6 8.5-9 13-9s9.5 3 13 9c-3.5 6-8.5 9-13 9s-9.5-3-13-9z"/>
+            <circle cx="16" cy="16" r="4"/>
+          </svg>
+          <div class="icon-text">ENCRYPTED</div>
+        </div>
+        <div class="hidden-hint">
+          暗层内容已嵌入图像频率系数中<br>
+          <span style="opacity:0.5;">只有持有密钥的接收者可以解码</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="bottom-label">REDSecret · DCT Frequency Domain Steganography</div>
+</body>
+</html>

@@ -3,600 +3,193 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>REDSecret · 图片隐写</title>
+<title>REDSecret · 多模式隐写</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..600;1,9..144,400..600&family=Outfit:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.4/build/qrcode.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
 <style>
-/* ========== TOKENS — warm editorial ========== */
 :root {
-  --paper:      #f7f3ec;
-  --paper-2:    #efe9df;
-  --ink:        #191511;
-  --ink-2:      #544c44;
-  --ink-3:      #6e6459;
-  --line:       rgba(25, 21, 17, .13);
-  --line-strong: rgba(25, 21, 17, .32);
-  --accent:     #a63e0c;
-  --accent-bright: #d9651f;
-  --accent-soft: rgba(166, 62, 12, .08);
-  --font-display: 'Fraunces', Georgia, serif;
-  --font-body:  'Outfit', -apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif;
-  --font-mono:  'JetBrains Mono', SFMono-Regular, Menlo, monospace;
-  --ease:       cubic-bezier(.16, 1, .3, 1);
-  --radius:     6px;
+  --paper:#f7f3ec;--paper-2:#efe9df;--ink:#191511;--ink-2:#544c44;--ink-3:#6e6459;
+  --line:rgba(25,21,17,.13);--line-strong:rgba(25,21,17,.32);
+  --accent:#a63e0c;--accent-bright:#d9651f;--accent-soft:rgba(166,62,12,.08);
+  --green:#2d6a4f;--red:#b33a3a;
+  --font-display:'Fraunces',Georgia,serif;
+  --font-body:'Outfit',-apple-system,BlinkMacSystemFont,sans-serif;
+  --font-mono:'JetBrains Mono',SFMono-Regular,Menlo,monospace;
+  --ease:cubic-bezier(.16,1,.3,1);--radius:6px;
 }
-
-/* ========== RESET ========== */
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-html { scroll-behavior: smooth; }
-
-body {
-  background: var(--paper);
-  color: var(--ink);
-  font-family: var(--font-body);
-  font-weight: 400;
-  line-height: 1.55;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  min-height: 100vh;
-}
-
-/* ========== SCROLLBAR ========== */
-::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-track { background: var(--paper-2); }
-::-webkit-scrollbar-thumb { background: var(--line-strong); border-radius: 3px; }
-
-/* ========== LAYOUT SHELL ========== */
-.shell {
-  max-width: 720px;
-  margin: 0 auto;
-  padding: 0 32px 80px;
-}
-
-/* ========== HEADER / BRAND ========== */
-.brand-bar {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  padding: 48px 0 0;
-  font-family: var(--font-mono);
-  font-size: 12px;
-  letter-spacing: .04em;
-  color: var(--ink-3);
-}
-
-.brand-bar a {
-  color: var(--accent);
-  text-decoration: none;
-  transition: color .25s var(--ease);
-}
-.brand-bar a:hover { color: var(--accent-bright); }
-
-/* ========== HERO ========== */
-.hero {
-  padding: 56px 0 48px;
-  border-bottom: 2px solid var(--ink);
-}
-
-.kicker {
-  font-family: var(--font-mono);
-  font-size: 12px;
-  letter-spacing: .15em;
-  text-transform: uppercase;
-  color: var(--accent);
-  font-weight: 500;
-  margin: 0 0 28px;
-}
-
-.hero .rule {
-  width: 60px;
-  height: 3px;
-  background: var(--accent);
-  margin: 0 0 32px;
-}
-
-.hero h1 {
-  font-family: var(--font-display);
-  font-weight: 560;
-  font-variation-settings: 'opsz' 110;
-  letter-spacing: -.018em;
-  line-height: 1.04;
-  font-size: clamp(48px, 7.6vw, 80px);
-}
-
-.hero .lede {
-  font-size: 18px;
-  line-height: 1.55;
-  color: var(--ink-2);
-  font-weight: 300;
-  max-width: 48ch;
-  margin: 24px 0 0;
-}
-
-/* ========== TABS ========== */
-.tabs {
-  display: flex;
-  gap: 0;
-  margin: 48px 0 0;
-  border-bottom: 1px solid var(--line-strong);
-  position: sticky;
-  top: 0;
-  background: var(--paper);
-  z-index: 10;
-}
-
-.tab {
-  flex: 1;
-  padding: 18px 0;
-  cursor: pointer;
-  font-family: var(--font-mono);
-  font-size: 13px;
-  font-weight: 500;
-  letter-spacing: .1em;
-  text-transform: uppercase;
-  background: transparent;
-  color: var(--ink-3);
-  border: none;
-  border-bottom: 2px solid transparent;
-  transition: color .3s var(--ease), border-color .3s var(--ease);
-  position: relative;
-  bottom: -1px;
-}
-
-.tab:hover { color: var(--ink); }
-
-.tab.active {
-  color: var(--accent);
-  border-bottom-color: var(--accent);
-}
-
-/* ========== PANELS ========== */
-.panel { display: none; }
-
-.panel.active {
-  display: block;
-  animation: panelIn .4s var(--ease) both;
-}
-
-@keyframes panelIn {
-  from { opacity: 0; transform: translateY(12px); }
-  to   { opacity: 1; transform: none; }
-}
-
-/* ========== SECTION DIVIDER ========== */
-.divider {
-  border: none;
-  border-top: 1px solid var(--line);
-  margin: 48px 0 0;
-}
-
-/* ========== STEP CARD ========== */
-.step-card {
-  padding: 48px 0 0;
-}
-
-.step-num {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  letter-spacing: .15em;
-  text-transform: uppercase;
-  color: var(--accent);
-  font-weight: 500;
-  margin: 0 0 20px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.step-num::after {
-  content: '';
-  flex: 1;
-  height: 1px;
-  background: var(--line);
-}
-
-.step-title {
-  font-family: var(--font-display);
-  font-weight: 520;
-  font-variation-settings: 'opsz' 72;
-  letter-spacing: -.01em;
-  line-height: 1.15;
-  font-size: clamp(24px, 3vw, 32px);
-  margin: 0 0 8px;
-}
-
-.step-desc {
-  font-size: 15px;
-  line-height: 1.6;
-  color: var(--ink-2);
-  max-width: 48ch;
-  margin: 0 0 28px;
-}
-
-/* ========== UPLOAD ZONE ========== */
-.upload-zone {
-  border: 1.5px dashed var(--line-strong);
-  border-radius: var(--radius);
-  padding: 44px 24px;
-  text-align: center;
-  cursor: pointer;
-  transition: all .3s var(--ease);
-  position: relative;
-  overflow: hidden;
-  background: var(--paper-2);
-}
-
-.upload-zone:hover {
-  border-color: var(--accent);
-  background: var(--accent-soft);
-}
-
-.upload-zone.dragover {
-  border-color: var(--accent-bright);
-  background: var(--accent-soft);
-  border-style: solid;
-}
-
-.upload-zone.has-image {
-  padding: 0;
-  border-style: solid;
-  border-color: var(--line);
-}
-
-.upload-zone.has-image img {
-  width: 100%;
-  border-radius: calc(var(--radius) - 1px);
-  display: block;
-}
-
-.upload-icon {
-  width: 44px;
-  height: 44px;
-  margin: 0 auto 12px;
-  border-radius: 8px;
-  background: var(--accent-soft);
-  border: 1px solid rgba(166, 62, 12, .15);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 20px;
-}
-
-.upload-zone:hover .upload-icon {
-  transform: translateY(-2px);
-}
-
-.upload-zone p {
-  color: var(--ink-3);
-  font-size: 13px;
-  line-height: 1.6;
-}
-
-.upload-zone p strong {
-  color: var(--accent);
-  font-weight: 600;
-}
-
-.upload-zone input {
-  position: absolute;
-  inset: 0;
-  opacity: 0;
-  cursor: pointer;
-}
-
-/* ========== FORM ELEMENTS ========== */
-label {
-  display: block;
-  font-family: var(--font-mono);
-  font-size: 11px;
-  font-weight: 500;
-  letter-spacing: .12em;
-  text-transform: uppercase;
-  color: var(--ink-3);
-  margin-bottom: 8px;
-  margin-top: 24px;
-}
-
-label:first-of-type { margin-top: 0; }
-
-input[type="text"],
-textarea {
-  width: 100%;
-  padding: 12px 16px;
-  background: var(--paper-2);
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  color: var(--ink);
-  font-size: 15px;
-  font-family: var(--font-body);
-  outline: none;
-  transition: border-color .3s var(--ease), box-shadow .3s var(--ease);
-}
-
-input[type="text"]:focus,
-textarea:focus {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3px var(--accent-soft);
-}
-
-input[type="text"]::placeholder,
-textarea::placeholder {
-  color: var(--ink-3);
-}
-
-textarea {
-  resize: vertical;
-  min-height: 80px;
-  font-family: var(--font-mono);
-  font-size: 13px;
-  line-height: 1.6;
-}
-
-/* ========== POSITION PICKER ========== */
-.position-picker {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 6px;
-  margin-top: 10px;
-}
-
-.pos {
-  aspect-ratio: 1;
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 13px;
-  color: var(--ink-3);
-  background: var(--paper-2);
-  transition: all .3s var(--ease);
-  font-family: var(--font-mono);
-}
-
-.pos:hover {
-  border-color: var(--accent);
-  color: var(--ink);
-  background: var(--accent-soft);
-}
-
-.pos.active {
-  border-color: var(--accent);
-  background: var(--accent);
-  color: #fff;
-}
-
-/* ========== NOTE ========== */
-.note {
-  font-size: 12.5px;
-  color: var(--ink-3);
-  margin-top: 16px;
-  line-height: 1.7;
-  padding-left: 14px;
-  border-left: 2px solid var(--accent);
-}
-
-/* ========== BUTTONS ========== */
-.btn {
-  width: 100%;
-  padding: 18px 24px;
-  border: none;
-  border-radius: var(--radius);
-  font-family: var(--font-body);
-  font-size: 15px;
-  font-weight: 600;
-  letter-spacing: -.005em;
-  cursor: pointer;
-  transition: all .3s var(--ease);
-  margin-top: 28px;
-  position: relative;
-}
-
-.btn-encrypt {
-  background: var(--accent);
-  color: #fff;
-}
-
-.btn-encrypt:hover:not(:disabled) {
-  background: var(--accent-bright);
-  transform: translateY(-1px);
-}
-
-.btn-decrypt {
-  background: var(--ink);
-  color: var(--paper);
-}
-
-.btn-decrypt:hover:not(:disabled) {
-  background: #2a241e;
-  transform: translateY(-1px);
-}
-
-.btn:disabled {
-  opacity: .4;
-  cursor: not-allowed;
-  transform: none !important;
-}
-
-.btn:active:not(:disabled) {
-  transform: translateY(0) scale(.99);
-}
-
-/* ========== RESULTS ========== */
-.result {
-  text-align: center;
-  padding: 32px;
-  margin-top: 24px;
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  background: var(--paper-2);
-  animation: resultReveal .5s var(--ease) both;
-}
-
-@keyframes resultReveal {
-  from { opacity: 0; transform: translateY(12px); }
-  to   { opacity: 1; transform: none; }
-}
-
-.result img {
-  max-width: 100%;
-  border-radius: var(--radius);
-  border: 1px solid var(--line);
-  margin: 12px 0;
-}
-
-.result-success {
-  color: #2d6a4f;
-  font-weight: 600;
-  font-size: 15px;
-  margin-bottom: 12px;
-}
-
-.result-fail {
-  color: #b33a3a;
-  font-weight: 600;
-  font-size: 15px;
-  margin-bottom: 8px;
-}
-
-.secret-text {
-  background: var(--paper);
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  padding: 16px;
-  font-family: var(--font-mono);
-  font-size: 13px;
-  color: var(--accent);
-  word-break: break-all;
-  margin: 12px 0;
-  text-align: left;
-  line-height: 1.7;
-}
-
-.download-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 12px 28px;
-  background: var(--ink);
-  color: var(--paper);
-  border: none;
-  border-radius: var(--radius);
-  text-decoration: none;
-  font-family: var(--font-body);
-  font-weight: 600;
-  font-size: 13px;
-  transition: all .3s var(--ease);
-  margin-top: 8px;
-}
-
-.download-btn:hover {
-  background: #2a241e;
-  transform: translateY(-1px);
-}
-
-/* ========== FOOTER ========== */
-.footer {
-  border-top: 1px solid var(--line);
-  padding: 32px 0;
-  margin-top: 64px;
-  text-align: center;
-  color: var(--ink-3);
-  font-family: var(--font-mono);
-  font-size: 11.5px;
-  letter-spacing: .04em;
-}
-
-.footer a {
-  color: var(--accent);
-  text-decoration: none;
-  transition: color .25s var(--ease);
-}
-
-.footer a:hover { color: var(--accent-bright); }
-
-.footer-line {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.footer-dot {
-  width: 3px;
-  height: 3px;
-  border-radius: 50%;
-  background: var(--ink-3);
-}
-
-/* ========== RESPONSIVE ========== */
-@media (max-width: 600px) {
-  .shell { padding: 0 20px 60px; }
-  .brand-bar { padding: 32px 0 0; }
-  .hero { padding: 40px 0 36px; }
-  .hero h1 { font-size: 40px; }
-  .hero .lede { font-size: 16px; }
-  .tabs { margin-top: 32px; }
-  .tab { font-size: 12px; padding: 14px 0; }
-  .step-card { padding: 36px 0 0; }
-  .upload-zone { padding: 32px 16px; }
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--paper);color:var(--ink);font-family:var(--font-body);font-weight:400;line-height:1.55;-webkit-font-smoothing:antialiased;min-height:100vh}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:var(--paper-2)}::-webkit-scrollbar-thumb{background:var(--line-strong);border-radius:3px}
+.shell{max-width:720px;margin:0 auto;padding:0 32px 80px}
+.brand-bar{display:flex;justify-content:space-between;align-items:baseline;padding:48px 0 0;font-family:var(--font-mono);font-size:12px;letter-spacing:.04em;color:var(--ink-3)}
+.brand-bar a{color:var(--accent);text-decoration:none;transition:color .25s var(--ease)}.brand-bar a:hover{color:var(--accent-bright)}
+.hero{padding:56px 0 48px;border-bottom:2px solid var(--ink)}
+.kicker{font-family:var(--font-mono);font-size:12px;letter-spacing:.15em;text-transform:uppercase;color:var(--accent);font-weight:500;margin:0 0 28px}
+.hero .rule{width:60px;height:3px;background:var(--accent);margin:0 0 32px}
+.hero h1{font-family:var(--font-display);font-weight:560;font-variation-settings:'opsz' 110;letter-spacing:-.018em;line-height:1.04;font-size:clamp(48px,7.6vw,80px)}
+.hero .lede{font-size:18px;line-height:1.55;color:var(--ink-2);font-weight:300;max-width:48ch;margin:24px 0 0}
+
+/* Method selector */
+.method-selector{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:40px 0 0}
+.method-card{border:1.5px solid var(--line);border-radius:var(--radius);padding:20px 16px;cursor:pointer;transition:all .3s var(--ease);background:var(--paper-2);text-align:center}
+.method-card:hover{border-color:var(--accent);background:var(--accent-soft)}
+.method-card.active{border-color:var(--accent);background:var(--accent);color:#fff}
+.method-card .method-icon{font-size:28px;margin-bottom:8px}
+.method-card .method-name{font-family:var(--font-mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;font-weight:500}
+.method-card .method-desc{font-size:12px;color:var(--ink-3);margin-top:6px;line-height:1.4}
+.method-card.active .method-desc{color:rgba(255,255,255,.75)}
+
+/* Tabs */
+.tabs{display:flex;gap:0;margin:36px 0 0;border-bottom:1px solid var(--line-strong);position:sticky;top:0;background:var(--paper);z-index:10}
+.tab{flex:1;padding:18px 0;cursor:pointer;font-family:var(--font-mono);font-size:13px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;background:transparent;color:var(--ink-3);border:none;border-bottom:2px solid transparent;transition:color .3s var(--ease),border-color .3s var(--ease);position:relative;bottom:-1px}
+.tab:hover{color:var(--ink)}.tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+
+.panel{display:none}.panel.active{display:block;animation:panelIn .4s var(--ease) both}
+@keyframes panelIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+
+.divider{border:none;border-top:1px solid var(--line);margin:48px 0 0}
+.step-card{padding:48px 0 0}
+.step-num{font-family:var(--font-mono);font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:var(--accent);font-weight:500;margin:0 0 20px;display:flex;align-items:center;gap:12px}
+.step-num::after{content:'';flex:1;height:1px;background:var(--line)}
+.step-title{font-family:var(--font-display);font-weight:520;font-variation-settings:'opsz' 72;letter-spacing:-.01em;line-height:1.15;font-size:clamp(24px,3vw,32px);margin:0 0 8px}
+.step-desc{font-size:15px;line-height:1.6;color:var(--ink-2);max-width:48ch;margin:0 0 28px}
+
+.upload-zone{border:1.5px dashed var(--line-strong);border-radius:var(--radius);padding:44px 24px;text-align:center;cursor:pointer;transition:all .3s var(--ease);position:relative;overflow:hidden;background:var(--paper-2)}
+.upload-zone:hover{border-color:var(--accent);background:var(--accent-soft)}
+.upload-zone.dragover{border-color:var(--accent-bright);background:var(--accent-soft);border-style:solid}
+.upload-zone.has-image{padding:0;border-style:solid;border-color:var(--line)}
+.upload-zone.has-image img{width:100%;border-radius:calc(var(--radius) - 1px);display:block}
+.upload-icon{width:44px;height:44px;margin:0 auto 12px;border-radius:8px;background:var(--accent-soft);border:1px solid rgba(166,62,12,.15);display:flex;align-items:center;justify-content:center;font-size:20px}
+.upload-zone:hover .upload-icon{transform:translateY(-2px)}
+.upload-zone p{color:var(--ink-3);font-size:13px;line-height:1.6}
+.upload-zone p strong{color:var(--accent);font-weight:600}
+.upload-zone input{position:absolute;inset:0;opacity:0;cursor:pointer}
+
+label{display:block;font-family:var(--font-mono);font-size:11px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3);margin-bottom:8px;margin-top:24px}
+label:first-of-type{margin-top:0}
+input[type="text"],textarea{width:100%;padding:12px 16px;background:var(--paper-2);border:1px solid var(--line);border-radius:var(--radius);color:var(--ink);font-size:15px;font-family:var(--font-body);outline:none;transition:border-color .3s var(--ease),box-shadow .3s var(--ease)}
+input[type="text"]:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+input[type="text"]::placeholder,textarea::placeholder{color:var(--ink-3)}
+textarea{resize:vertical;min-height:80px;font-family:var(--font-mono);font-size:13px;line-height:1.6}
+
+.position-picker{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:10px}
+.pos{aspect-ratio:1;border:1px solid var(--line);border-radius:var(--radius);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:13px;color:var(--ink-3);background:var(--paper-2);transition:all .3s var(--ease);font-family:var(--font-mono)}
+.pos:hover{border-color:var(--accent);color:var(--ink);background:var(--accent-soft)}
+.pos.active{border-color:var(--accent);background:var(--accent);color:#fff}
+
+.note{font-size:12.5px;color:var(--ink-3);margin-top:16px;line-height:1.7;padding-left:14px;border-left:2px solid var(--accent)}
+
+.btn{width:100%;padding:18px 24px;border:none;border-radius:var(--radius);font-family:var(--font-body);font-size:15px;font-weight:600;letter-spacing:-.005em;cursor:pointer;transition:all .3s var(--ease);margin-top:28px;position:relative}
+.btn-encrypt{background:var(--accent);color:#fff}
+.btn-encrypt:hover:not(:disabled){background:var(--accent-bright);transform:translateY(-1px)}
+.btn-decrypt{background:var(--ink);color:var(--paper)}
+.btn-decrypt:hover:not(:disabled){background:#2a241e;transform:translateY(-1px)}
+.btn:disabled{opacity:.4;cursor:not-allowed;transform:none !important}
+.btn:active:not(:disabled){transform:translateY(0) scale(.99)}
+
+.result{text-align:center;padding:32px;margin-top:24px;border:1px solid var(--line);border-radius:var(--radius);background:var(--paper-2);animation:resultReveal .5s var(--ease) both}
+@keyframes resultReveal{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+.result img{max-width:100%;border-radius:var(--radius);border:1px solid var(--line);margin:12px 0}
+.result-success{color:var(--green);font-weight:600;font-size:15px;margin-bottom:12px}
+.result-fail{color:var(--red);font-weight:600;font-size:15px;margin-bottom:8px}
+.secret-text{background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);padding:16px;font-family:var(--font-mono);font-size:13px;color:var(--accent);word-break:break-all;margin:12px 0;text-align:left;line-height:1.7;white-space:pre-wrap}
+.download-btn{display:inline-flex;align-items:center;gap:8px;padding:12px 28px;background:var(--ink);color:var(--paper);border:none;border-radius:var(--radius);text-decoration:none;font-family:var(--font-body);font-weight:600;font-size:13px;transition:all .3s var(--ease);margin-top:8px}
+.download-btn:hover{background:#2a241e;transform:translateY(-1px)}
+
+.copy-btn{display:inline-flex;align-items:center;gap:6px;padding:8px 18px;background:transparent;color:var(--accent);border:1px solid var(--accent);border-radius:var(--radius);font-family:var(--font-body);font-size:13px;font-weight:500;cursor:pointer;transition:all .3s var(--ease);margin-top:12px}
+.copy-btn:hover{background:var(--accent-soft)}
+.copy-btn.copied{background:var(--green);border-color:var(--green);color:#fff}
+
+.footer{border-top:1px solid var(--line);padding:32px 0;margin-top:64px;text-align:center;color:var(--ink-3);font-family:var(--font-mono);font-size:11.5px;letter-spacing:.04em}
+.footer a{color:var(--accent);text-decoration:none;transition:color .25s var(--ease)}.footer a:hover{color:var(--accent-bright)}
+.footer-line{display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap}
+.footer-dot{width:3px;height:3px;border-radius:50%;background:var(--ink-3)}
+
+/* Zero-width result */
+.zw-output{background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);padding:16px;margin:12px 0;text-align:left}
+.zw-output .zw-visible{font-family:var(--font-body);font-size:15px;color:var(--ink);line-height:1.6}
+.zw-output .zw-hidden{font-family:var(--font-mono);font-size:11px;color:var(--ink-3);margin-top:8px;word-break:break-all;line-height:1.5}
+.zw-output .zw-label{font-family:var(--font-mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);margin-bottom:4px}
+
+/* LSB info */
+.lsb-info{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px}
+.lsb-stat{padding:12px;background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);text-align:center}
+.lsb-stat .lsb-val{font-family:var(--font-mono);font-size:18px;font-weight:600;color:var(--accent)}
+.lsb-stat .lsb-label{font-size:11px;color:var(--ink-3);margin-top:4px}
+
+@media(max-width:600px){
+  .shell{padding:0 20px 60px}.brand-bar{padding:32px 0 0}.hero{padding:40px 0 36px}.hero h1{font-size:40px}.hero .lede{font-size:16px}
+  .method-selector{grid-template-columns:1fr}.tabs{margin-top:32px}.tab{font-size:12px;padding:14px 0}.step-card{padding:36px 0 0}.upload-zone{padding:32px 16px}
+  .lsb-info{grid-template-columns:1fr}
 }
 </style>
 </head>
 <body>
 
-<!-- ====== HEADER ====== -->
 <div class="shell">
   <div class="brand-bar">
     <span>◎ REDSecret</span>
     <a href="https://github.com/cnjoe1130/REDSecret" target="_blank" rel="noreferrer">GitHub →</a>
   </div>
 
-  <!-- ====== HERO ====== -->
   <div class="hero">
-    <p class="kicker">Steganography · 图片隐写</p>
+    <p class="kicker">Steganography · 多模式隐写</p>
     <div class="rule"></div>
     <h1>藏在像素里的秘密</h1>
-    <p class="lede">把文字编码为 QR 码，嵌入图片。肉眼不可见，密钥解密后还原。</p>
+    <p class="lede">三种隐写路线，从图片到文字，选择适合你的秘密传递方式。</p>
   </div>
 
-  <!-- ====== TABS ====== -->
+  <!-- Method Selector -->
+  <div class="method-selector">
+    <div class="method-card active" onclick="switchMethod('qr')">
+      <div class="method-icon">◧</div>
+      <div class="method-name">QR 隐写</div>
+      <div class="method-desc">QR码嵌入图片，肉眼可见微小标记</div>
+    </div>
+    <div class="method-card" onclick="switchMethod('lsb')">
+      <div class="method-icon">▣</div>
+      <div class="method-name">LSB 隐写</div>
+      <div class="method-desc">像素级隐藏，完全不可见</div>
+    </div>
+    <div class="method-card" onclick="switchMethod('zw')">
+      <div class="method-icon">ﾠ</div>
+      <div class="method-name">零宽字符</div>
+      <div class="method-desc">文字中隐藏信息，无需图片</div>
+    </div>
+  </div>
+
+  <!-- Tabs -->
   <div class="tabs">
     <button class="tab active" onclick="switchTab('encrypt')">加密 Encrypt</button>
     <button class="tab" onclick="switchTab('decrypt')">解密 Decrypt</button>
   </div>
 
-  <!-- ====== 加密面板 ====== -->
-  <div class="panel active" id="panel-encrypt">
-
+  <!-- ==================== QR PANELS ==================== -->
+  <div class="panel active" id="panel-qr-encrypt">
     <div class="step-card">
       <div class="step-num">Step 01</div>
       <h2 class="step-title">选择底图</h2>
-      <p class="step-desc">上传一张图片作为载体。QR 码将嵌入其中，肉眼几乎不可见。</p>
-      <div class="upload-zone" id="encrypt-upload">
+      <p class="step-desc">上传一张图片作为载体。QR码将嵌入其中。</p>
+      <div class="upload-zone" id="qr-enc-upload">
         <div class="upload-icon">📷</div>
         <p><strong>点击上传</strong> 或拖拽图片到此处</p>
       </div>
     </div>
-
     <hr class="divider">
-
     <div class="step-card">
       <div class="step-num">Step 02</div>
       <h2 class="step-title">填写内容</h2>
       <p class="step-desc">输入要隐藏的文字，并设置解密密钥。</p>
       <label>密文内容</label>
-      <textarea id="encrypt-text" placeholder="输入你想隐藏的文字..."></textarea>
+      <textarea id="qr-enc-text" placeholder="输入你想隐藏的文字..."></textarea>
       <label>密钥</label>
-      <input type="text" id="encrypt-key" placeholder="设置一个密钥，解密时需要">
-      <label>QR 码位置</label>
-      <div class="position-picker" id="pos-picker">
+      <input type="text" id="qr-enc-key" placeholder="设置一个密钥，解密时需要">
+      <label>QR码位置</label>
+      <div class="position-picker" id="qr-pos-picker">
         <div class="pos" data-pos="top-left" onclick="setPos(this)">↖</div>
         <div class="pos" data-pos="top-center" onclick="setPos(this)">↑</div>
         <div class="pos" data-pos="top-right" onclick="setPos(this)">↗</div>
@@ -607,206 +200,368 @@ textarea {
         <div class="pos active" data-pos="bottom-center" onclick="setPos(this)">↓</div>
         <div class="pos" data-pos="bottom-right" onclick="setPos(this)">↘</div>
       </div>
-      <p class="note">QR 码嵌入图片中，使用 Reed-Solomon 纠错。选择远离主体的位置以保证隐蔽性。</p>
+      <p class="note">QR码使用Reed-Solomon纠错。选择远离主体的位置以保证隐蔽性。</p>
     </div>
-
-    <button class="btn btn-encrypt" id="btn-encrypt" onclick="doEncrypt()" disabled>生成隐写图片</button>
-
-    <div class="result" id="encrypt-result" style="display:none">
-      <img id="encrypt-output">
-      <br>
-      <a class="download-btn" id="encrypt-download">下载隐写图片</a>
+    <button class="btn btn-encrypt" id="qr-enc-btn" onclick="doQrEncrypt()" disabled>生成隐写图片</button>
+    <div class="result" id="qr-enc-result" style="display:none">
+      <img id="qr-enc-output"><br>
+      <a class="download-btn" id="qr-enc-download">下载隐写图片</a>
     </div>
   </div>
 
-  <!-- ====== 解密面板 ====== -->
-  <div class="panel" id="panel-decrypt">
-
+  <div class="panel" id="panel-qr-decrypt">
     <div class="step-card">
       <div class="step-num">Step 01</div>
       <h2 class="step-title">选择图片</h2>
-      <p class="step-desc">上传包含隐写信息的图片。</p>
-      <div class="upload-zone" id="decrypt-upload">
+      <p class="step-desc">上传包含QR隐写信息的图片。</p>
+      <div class="upload-zone" id="qr-dec-upload">
         <div class="upload-icon">🔍</div>
         <p><strong>点击上传</strong> 或拖拽含密文的图片</p>
       </div>
     </div>
-
     <hr class="divider">
-
     <div class="step-card">
       <div class="step-num">Step 02</div>
       <h2 class="step-title">输入密钥</h2>
       <p class="step-desc">输入加密时设置的密钥来解密。</p>
       <label>密钥</label>
-      <input type="text" id="decrypt-key" placeholder="输入解密密钥">
+      <input type="text" id="qr-dec-key" placeholder="输入解密密钥">
     </div>
-
-    <button class="btn btn-decrypt" id="btn-decrypt" onclick="doDecrypt()" disabled>解密提取密文</button>
-
-    <div class="result" id="decrypt-result" style="display:none">
+    <button class="btn btn-decrypt" id="qr-dec-btn" onclick="doQrDecrypt()" disabled>解密提取密文</button>
+    <div class="result" id="qr-dec-result" style="display:none">
       <p class="result-success">✓ 解密成功</p>
-      <div class="secret-text" id="decrypt-text"></div>
+      <div class="secret-text" id="qr-dec-text"></div>
     </div>
-
-    <div class="result" id="decrypt-fail" style="display:none">
+    <div class="result" id="qr-dec-fail" style="display:none">
       <p class="result-fail">✗ 解密失败</p>
-      <p class="note">可能原因：密钥错误、图片未包含隐写信息、或图片压缩过度导致 QR 码损坏。</p>
+      <p class="note">可能原因：密钥错误、图片未包含隐写信息、或图片压缩导致QR码损坏。</p>
     </div>
   </div>
 
-  <!-- ====== FOOTER ====== -->
+  <!-- ==================== LSB PANELS ==================== -->
+  <div class="panel" id="panel-lsb-encrypt">
+    <div class="step-card">
+      <div class="step-num">Step 01</div>
+      <h2 class="step-title">选择底图</h2>
+      <p class="step-desc">上传一张图片。数据将隐藏在像素的最低有效位中，肉眼完全不可见。</p>
+      <div class="upload-zone" id="lsb-enc-upload">
+        <div class="upload-icon">📷</div>
+        <p><strong>点击上传</strong> 或拖拽图片到此处</p>
+      </div>
+      <div class="lsb-info" id="lsb-capacity" style="display:none">
+        <div class="lsb-stat"><div class="lsb-val" id="lsb-max-bytes">-</div><div class="lsb-label">最大容量 (bytes)</div></div>
+        <div class="lsb-stat"><div class="lsb-val" id="lsb-max-chars">-</div><div class="lsb-label">最大字符数</div></div>
+      </div>
+    </div>
+    <hr class="divider">
+    <div class="step-card">
+      <div class="step-num">Step 02</div>
+      <h2 class="step-title">填写内容</h2>
+      <p class="step-desc">输入要隐藏的文字。容量取决于图片大小。</p>
+      <label>密文内容</label>
+      <textarea id="lsb-enc-text" placeholder="输入你想隐藏的文字..."></textarea>
+      <label>密钥</label>
+      <input type="text" id="lsb-enc-key" placeholder="设置一个密钥，解密时需要">
+      <p class="note">LSB隐写将数据编码到像素RGB的最低位。图片经过裁剪、重度压缩或滤镜可能损坏数据。建议使用PNG无损格式。</p>
+    </div>
+    <button class="btn btn-encrypt" id="lsb-enc-btn" onclick="doLsbEncrypt()" disabled>生成隐写图片</button>
+    <div class="result" id="lsb-enc-result" style="display:none">
+      <img id="lsb-enc-output"><br>
+      <a class="download-btn" id="lsb-enc-download">下载隐写图片</a>
+    </div>
+  </div>
+
+  <div class="panel" id="panel-lsb-decrypt">
+    <div class="step-card">
+      <div class="step-num">Step 01</div>
+      <h2 class="step-title">选择图片</h2>
+      <p class="step-desc">上传包含LSB隐写信息的图片（建议PNG原图）。</p>
+      <div class="upload-zone" id="lsb-dec-upload">
+        <div class="upload-icon">🔍</div>
+        <p><strong>点击上传</strong> 或拖拽含密文的图片</p>
+      </div>
+    </div>
+    <hr class="divider">
+    <div class="step-card">
+      <div class="step-num">Step 02</div>
+      <h2 class="step-title">输入密钥</h2>
+      <p class="step-desc">输入加密时设置的密钥来解密。</p>
+      <label>密钥</label>
+      <input type="text" id="lsb-dec-key" placeholder="输入解密密钥">
+    </div>
+    <button class="btn btn-decrypt" id="lsb-dec-btn" onclick="doLsbDecrypt()" disabled>解密提取密文</button>
+    <div class="result" id="lsb-dec-result" style="display:none">
+      <p class="result-success">✓ 解密成功</p>
+      <div class="secret-text" id="lsb-dec-text"></div>
+    </div>
+    <div class="result" id="lsb-dec-fail" style="display:none">
+      <p class="result-fail">✗ 解密失败</p>
+      <p class="note">可能原因：密钥错误、图片非LSB隐写格式、或图片经过有损压缩/裁剪。</p>
+    </div>
+  </div>
+
+  <!-- ==================== ZERO-WIDTH PANELS ==================== -->
+  <div class="panel" id="panel-zw-encrypt">
+    <div class="step-card">
+      <div class="step-num">Step 01</div>
+      <h2 class="step-title">填写内容</h2>
+      <p class="step-desc">输入要隐藏的文字。加密后将生成一段"零宽字符"，可以粘贴到任何文本中。</p>
+      <label>密文内容</label>
+      <textarea id="zw-enc-text" placeholder="输入你想隐藏的文字..."></textarea>
+      <label>密钥</label>
+      <input type="text" id="zw-enc-key" placeholder="设置一个密钥，解密时需要">
+      <label>载体文字（可选）</label>
+      <input type="text" id="zw-cover-text" placeholder="一段看起来正常的话，零宽字符会藏在里面">
+      <p class="note">零宽字符（U+200B/U+200C/U+200D/U+FEFF）在视觉上完全不可见。可以粘贴到微信、微博、Twitter等任何文本输入框中传递秘密信息。无需图片。</p>
+    </div>
+    <button class="btn btn-encrypt" id="zw-enc-btn" onclick="doZwEncrypt()">生成零宽密文</button>
+    <div class="result" id="zw-enc-result" style="display:none">
+      <p class="result-success">✓ 生成成功</p>
+      <div class="zw-output">
+        <div class="zw-label">复制以下内容（肉眼看到的是载体文字）</div>
+        <div class="zw-visible" id="zw-enc-visible"></div>
+        <div class="zw-label" style="margin-top:12px">零宽字符明细</div>
+        <div class="zw-hidden" id="zw-enc-hidden"></div>
+      </div>
+      <button class="copy-btn" id="zw-copy-btn" onclick="copyZwText()">📋 复制密文</button>
+    </div>
+  </div>
+
+  <div class="panel" id="panel-zw-decrypt">
+    <div class="step-card">
+      <div class="step-num">Step 01</div>
+      <h2 class="step-title">粘贴内容</h2>
+      <p class="step-desc">粘贴包含零宽字符的文本（从聊天、微博等处复制）。</p>
+      <label>含密文的文本</label>
+      <textarea id="zw-dec-text" placeholder="粘贴收到的文本（可能看起来只是一段普通文字）..." style="min-height:120px"></textarea>
+    </div>
+    <hr class="divider">
+    <div class="step-card">
+      <div class="step-num">Step 02</div>
+      <h2 class="step-title">输入密钥</h2>
+      <p class="step-desc">输入加密时设置的密钥来解密。</p>
+      <label>密钥</label>
+      <input type="text" id="zw-dec-key" placeholder="输入解密密钥">
+    </div>
+    <button class="btn btn-decrypt" id="zw-dec-btn" onclick="doZwDecrypt()">解密提取密文</button>
+    <div class="result" id="zw-dec-result" style="display:none">
+      <p class="result-success">✓ 解密成功</p>
+      <div class="secret-text" id="zw-dec-text"></div>
+    </div>
+    <div class="result" id="zw-dec-fail" style="display:none">
+      <p class="result-fail">✗ 解密失败</p>
+      <p class="note">可能原因：密钥错误、文本中不包含零宽字符、或文本经过平台处理丢失了零宽字符。</p>
+    </div>
+  </div>
+
   <div class="footer">
     <div class="footer-line">
-      REDSecret <span class="footer-dot"></span> 图片隐写加密 <span class="footer-dot"></span> <a href="https://github.com/cnjoe1130/REDSecret">GitHub</a>
+      REDSecret <span class="footer-dot"></span> QR · LSB · 零宽字符 <span class="footer-dot"></span> <a href="https://github.com/cnjoe1130/REDSecret">GitHub</a>
     </div>
   </div>
-
 </div>
 
 <script>
-// === State ===
-let encryptImg = null;
-let decryptImg = null;
+// ============ STATE ============
+let currentMethod = 'qr';
+let currentTab = 'encrypt';
+let qrImg = { enc: null, dec: null };
+let lsbImg = { enc: null, dec: null };
 let qrPosition = 'bottom-center';
+let lastZwText = '';
 
-// === Tab Switch ===
+// ============ METHOD SWITCH ============
+function switchMethod(method) {
+  currentMethod = method;
+  document.querySelectorAll('.method-card').forEach((c, i) => {
+    c.classList.toggle('active', ['qr','lsb','zw'][i] === method);
+  });
+  switchTab(currentTab);
+}
+
+// ============ TAB SWITCH ============
 function switchTab(tab) {
+  currentTab = tab;
   document.querySelectorAll('.tab').forEach((t, i) => {
     t.classList.toggle('active', (tab === 'encrypt' && i === 0) || (tab === 'decrypt' && i === 1));
   });
-  document.getElementById('panel-encrypt').classList.toggle('active', tab === 'encrypt');
-  document.getElementById('panel-decrypt').classList.toggle('active', tab === 'decrypt');
+  // Hide all panels
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  // Show correct panel
+  const panelId = `panel-${currentMethod}-${tab}`;
+  const el = document.getElementById(panelId);
+  if (el) el.classList.add('active');
 }
 
-// === Position Picker ===
+// ============ POSITION PICKER ============
 function setPos(el) {
-  document.querySelectorAll('.pos').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('#qr-pos-picker .pos').forEach(p => p.classList.remove('active'));
   el.classList.add('active');
   qrPosition = el.dataset.pos;
 }
 
-// === Load Image ===
-function loadEncryptImage(input) {
+// ============ IMAGE LOADING ============
+function setupUpload(zoneId, imgStore, key, onReady) {
+  const zone = document.getElementById(zoneId);
+  // Drag & drop
+  zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('dragover'); });
+  zone.addEventListener('dragleave', () => zone.classList.remove('dragover'));
+  zone.addEventListener('drop', e => {
+    e.preventDefault(); zone.classList.remove('dragover');
+    const input = zone.querySelector('input[type=file]');
+    if (input && e.dataTransfer.files.length) { input.files = e.dataTransfer.files; input.dispatchEvent(new Event('change')); }
+  });
+  // Also handle click
+  zone.addEventListener('click', e => {
+    if (e.target.tagName === 'INPUT') return;
+    const input = zone.querySelector('input[type=file]');
+    if (input) input.click();
+  });
+}
+
+function loadImage(input, imgStore, zoneId, btnId, callback) {
   const file = input.files[0];
   if (!file) return;
   const reader = new FileReader();
-  reader.onload = (e) => {
+  reader.onload = e => {
     const img = new Image();
     img.onload = () => {
-      encryptImg = img;
-      const zone = document.getElementById('encrypt-upload');
+      imgStore[key] = img;
+      const zone = document.getElementById(zoneId);
       zone.classList.add('has-image');
-      zone.innerHTML = `<img src="${e.target.result}"><input type="file" accept="image/*" onchange="loadEncryptImage(this)">`;
-      document.getElementById('btn-encrypt').disabled = false;
+      zone.innerHTML = `<img src="${e.target.result}"><input type="file" accept="image/*">`;
+      zone.querySelector('input').addEventListener('change', function() { loadImage(this, imgStore, zoneId, btnId, callback); });
+      setupUpload(zoneId, imgStore, key);
+      if (btnId) document.getElementById(btnId).disabled = false;
+      if (callback) callback(img);
     };
     img.src = e.target.result;
   };
   reader.readAsDataURL(file);
 }
 
-function loadDecryptImage(input) {
-  const file = input.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = (e) => {
-    const img = new Image();
-    img.onload = () => {
-      decryptImg = img;
-      const zone = document.getElementById('decrypt-upload');
-      zone.classList.add('has-image');
-      zone.innerHTML = `<img src="${e.target.result}"><input type="file" accept="image/*" onchange="loadDecryptImage(this)">`;
-      document.getElementById('btn-decrypt').disabled = false;
-    };
-    img.src = e.target.result;
-  };
-  reader.readAsDataURL(file);
-}
-
-// === XOR Encryption ===
-function xorEncrypt(text, key) {
-  const data = new TextEncoder().encode(text);
+// ============ XOR CRYPTO ============
+function xorCrypt(data, key) {
   const kb = new TextEncoder().encode(key);
   const result = new Uint8Array(data.length);
-  for (let i = 0; i < data.length; i++) {
-    result[i] = data[i] ^ kb[i % kb.length];
-  }
+  for (let i = 0; i < data.length; i++) result[i] = data[i] ^ kb[i % kb.length];
   return result;
 }
 
-function xorDecrypt(data, key) {
-  const kb = new TextEncoder().encode(key);
-  const result = new Uint8Array(data.length);
-  for (let i = 0; i < data.length; i++) {
-    result[i] = data[i] ^ kb[i % kb.length];
-  }
-  return new TextDecoder().decode(result);
-}
+// ============ PAYLOAD FORMAT ============
+// Magic: "REDS" (4 bytes) + version (1 byte) + 2-byte LE length + data + 4-byte checksum
+const MAGIC = [0x52, 0x45, 0x44, 0x53]; // "REDS"
 
-// === Payload Format ===
-function buildPayload(text) {
-  const textBytes = new TextEncoder().encode(text);
-  // MD5 checksum (first 4 bytes) - simplified for browser
-  let hash = 0;
-  for (let i = 0; i < text.length; i++) {
-    const ch = text.charCodeAt(i);
-    hash = ((hash << 5) - hash) + ch;
-    hash = hash & hash;
-  }
-  const checksum = new Uint8Array([
-    (hash >> 24) & 0xff, (hash >> 16) & 0xff,
-    (hash >> 8) & 0xff, hash & 0xff
-  ]);
-  // Format: 2-byte LE length + text + 4-byte checksum
-  const payload = new Uint8Array(2 + textBytes.length + 4);
-  payload[0] = textBytes.length & 0xff;
-  payload[1] = (textBytes.length >> 8) & 0xff;
-  payload.set(textBytes, 2);
-  payload.set(checksum, 2 + textBytes.length);
+function buildPayload(data) {
+  const len = data.length;
+  const payload = new Uint8Array(4 + 1 + 2 + len + 4);
+  payload.set(MAGIC, 0);
+  payload[4] = 1; // version
+  payload[5] = len & 0xff;
+  payload[6] = (len >> 8) & 0xff;
+  payload.set(data, 7);
+  // Simple checksum
+  let cs = 0;
+  for (let i = 0; i < data.length; i++) cs = ((cs << 5) - cs + data[i]) | 0;
+  payload[7 + len] = (cs >> 24) & 0xff;
+  payload[8 + len] = (cs >> 16) & 0xff;
+  payload[9 + len] = (cs >> 8) & 0xff;
+  payload[10 + len] = cs & 0xff;
   return payload;
 }
 
-function parsePayload(data) {
-  if (data.length < 6) return null;
-  const len = data[0] | (data[1] << 8);
-  if (len > data.length - 6 || len <= 0) return null;
-  const textBytes = data.slice(2, 2 + len);
-  return new TextDecoder().decode(textBytes);
+function parsePayload(payload) {
+  if (payload.length < 11) return null;
+  for (let i = 0; i < 4; i++) if (payload[i] !== MAGIC[i]) return null;
+  const version = payload[4];
+  if (version !== 1) return null;
+  const len = payload[5] | (payload[6] << 8);
+  if (len <= 0 || len > payload.length - 11) return null;
+  return payload.slice(7, 7 + len);
 }
 
-// === QR Generation (async) ===
-function generateQR(text) {
-  return new Promise((resolve, reject) => {
-    const canvas = document.createElement('canvas');
-    QRCode.toCanvas(canvas, text, {
-      width: 200,
-      margin: 1,
-      errorCorrectionLevel: 'M',
-      color: { dark: '#000000', light: '#ffffff' }
-    }, (err) => {
-      if (err) reject(err);
-      else resolve(canvas);
+// ============ QR ENCRYPT ============
+async function doQrEncrypt() {
+  const text = document.getElementById('qr-enc-text').value.trim();
+  const key = document.getElementById('qr-enc-key').value.trim();
+  if (!text || !key || !qrImg.enc) return;
+  const btn = document.getElementById('qr-enc-btn');
+  btn.disabled = true; btn.textContent = '⏳ 处理中...';
+  try {
+    const textBytes = new TextEncoder().encode(text);
+    const encrypted = xorCrypt(textBytes, key);
+    const payload = buildPayload(encrypted);
+    const hex = Array.from(payload).map(b => b.toString(16).padStart(2, '0')).join('');
+    const qrCanvas = await new Promise((res, rej) => {
+      QRCode.toCanvas(document.createElement('canvas'), 'REDS:' + hex, {
+        width: 200, margin: 1, errorCorrectionLevel: 'M',
+        color: { dark: '#000000', light: '#ffffff' }
+      }, (err, c) => err ? rej(err) : res(c));
     });
-  });
+    const canvas = document.createElement('canvas');
+    canvas.width = qrImg.enc.width; canvas.height = qrImg.enc.height;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(qrImg.enc, 0, 0);
+    const pos = calcPos(canvas.width, canvas.height, qrCanvas.width, qrCanvas.height, qrPosition);
+    ctx.fillStyle = 'rgba(255,255,255,0.9)';
+    ctx.fillRect(pos.x - 2, pos.y - 2, pos.w + 4, pos.h + 4);
+    ctx.drawImage(qrCanvas, pos.x, pos.y, pos.w, pos.h);
+    const url = canvas.toDataURL('image/png');
+    document.getElementById('qr-enc-output').src = url;
+    document.getElementById('qr-enc-download').href = url;
+    document.getElementById('qr-enc-download').download = 'redsecret_qr_' + Date.now() + '.png';
+    document.getElementById('qr-enc-result').style.display = 'block';
+  } catch (e) { alert('加密失败: ' + e.message); }
+  btn.disabled = false; btn.textContent = '生成隐写图片';
 }
 
-// === QR Detection ===
+// ============ QR DECRYPT ============
+function doQrDecrypt() {
+  const key = document.getElementById('qr-dec-key').value.trim();
+  if (!qrImg.dec || !key) return;
+  hide('qr-dec-result'); hide('qr-dec-fail');
+  const btn = document.getElementById('qr-dec-btn');
+  btn.disabled = true; btn.textContent = '⏳ 解密中...';
+  try {
+    const canvas = document.createElement('canvas');
+    canvas.width = qrImg.dec.width; canvas.height = qrImg.dec.height;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(qrImg.dec, 0, 0);
+    let qrData = detectQR(canvas);
+    if (!qrData) {
+      const regions = [
+        [0, 0, .3, .3], [.7, 0, .3, .3], [0, .7, .3, .3], [.7, .7, .3, .3], [.35, .35, .3, .3]
+      ];
+      for (const [rx, ry, rw, rh] of regions) {
+        const rc = document.createElement('canvas');
+        rc.width = Math.floor(canvas.width * rw); rc.height = Math.floor(canvas.height * rh);
+        rc.getContext('2d').drawImage(canvas, rx * canvas.width, ry * canvas.height, rw * canvas.width, rh * canvas.height, 0, 0, rc.width, rc.height);
+        qrData = detectQR(rc);
+        if (qrData) break;
+      }
+    }
+    if (!qrData || !qrData.startsWith('REDS:')) { show('qr-dec-fail'); return; }
+    const hex = qrData.slice(5);
+    const payload = new Uint8Array(hex.match(/.{2}/g).map(h => parseInt(h, 16)));
+    const data = parsePayload(payload);
+    if (!data) { show('qr-dec-fail'); return; }
+    const plain = new TextDecoder().decode(xorCrypt(data, key));
+    document.getElementById('qr-dec-text').textContent = plain;
+    show('qr-dec-result');
+  } catch (e) { show('qr-dec-fail'); }
+  btn.disabled = false; btn.textContent = '解密提取密文';
+}
+
 function detectQR(canvas) {
   const ctx = canvas.getContext('2d');
   const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-  const code = jsQR(imageData.data, canvas.width, canvas.height, {
-    inversionAttempts: 'attemptBoth'
-  });
+  const code = jsQR(imageData.data, canvas.width, canvas.height, { inversionAttempts: 'attemptBoth' });
   return code ? code.data : null;
 }
 
-// === Position Calculation ===
-function calcQRPosition(imgW, imgH, qrW, qrH, pos) {
-  const margin = 10;
-  const qrSize = Math.min(imgW * 0.15, 180);
-  const scale = qrSize / qrW;
-  const sw = qrW * scale;
-  const sh = qrH * scale;
+function calcPos(imgW, imgH, qrW, qrH, pos) {
+  const margin = 10, qrSize = Math.min(imgW * 0.15, 180);
+  const scale = qrSize / qrW, sw = qrW * scale, sh = qrH * scale;
   let x, y;
   switch (pos) {
     case 'top-left': x = margin; y = margin; break;
@@ -823,142 +578,236 @@ function calcQRPosition(imgW, imgH, qrW, qrH, pos) {
   return { x, y, w: sw, h: sh };
 }
 
-// === Encrypt ===
-async function doEncrypt() {
-  const text = document.getElementById('encrypt-text').value.trim();
-  const key = document.getElementById('encrypt-key').value.trim();
-  if (!text || !key || !encryptImg) return;
-
-  const btn = document.getElementById('btn-encrypt');
-  btn.disabled = true;
-  btn.textContent = '⏳ 处理中...';
-
+// ============ LSB ENCRYPT ============
+function doLsbEncrypt() {
+  const text = document.getElementById('lsb-enc-text').value.trim();
+  const key = document.getElementById('lsb-enc-key').value.trim();
+  if (!text || !key || !lsbImg.enc) return;
+  const btn = document.getElementById('lsb-enc-btn');
+  btn.disabled = true; btn.textContent = '⏳ 处理中...';
   try {
-    // 1. XOR encrypt + build payload
-    const encrypted = xorEncrypt(text, key);
-    const payload = buildPayload(Array.from(encrypted).map(b => b.toString(16).padStart(2, '0')).join(''));
-
-    // 2. Generate QR code with REDS: prefix
-    const qrText = 'REDS:' + Array.from(encrypted).map(b => b.toString(16).padStart(2, '0')).join('');
-    const qrCanvas = await generateQR(qrText);
-
-    // 3. Draw original image
+    const textBytes = new TextEncoder().encode(text);
+    const encrypted = xorCrypt(textBytes, key);
+    const payload = buildPayload(encrypted);
+    // Check capacity: 1 bit per RGB channel = 3 bits per pixel
     const canvas = document.createElement('canvas');
-    canvas.width = encryptImg.width;
-    canvas.height = encryptImg.height;
+    canvas.width = lsbImg.enc.width; canvas.height = lsbImg.enc.height;
     const ctx = canvas.getContext('2d');
-    ctx.drawImage(encryptImg, 0, 0);
-
-    // 4. Calculate position and draw QR
-    const pos = calcQRPosition(canvas.width, canvas.height, qrCanvas.width, qrCanvas.height, qrPosition);
-
-    // Draw white background for QR
-    ctx.fillStyle = 'rgba(255,255,255,0.9)';
-    ctx.fillRect(pos.x - 2, pos.y - 2, pos.w + 4, pos.h + 4);
-
-    // Draw QR code
-    ctx.drawImage(qrCanvas, pos.x, pos.y, pos.w, pos.h);
-
-    // 5. Output
-    const dataURL = canvas.toDataURL('image/png');
-    document.getElementById('encrypt-output').src = dataURL;
-    document.getElementById('encrypt-download').href = dataURL;
-    document.getElementById('encrypt-download').download = 'redsecret_' + Date.now() + '.png';
-    document.getElementById('encrypt-result').style.display = 'block';
-  } catch (e) {
-    alert('加密失败: ' + e.message);
-  }
-
-  btn.disabled = false;
-  btn.textContent = '生成隐写图片';
-}
-
-// === Decrypt ===
-function doDecrypt() {
-  const key = document.getElementById('decrypt-key').value.trim();
-  if (!decryptImg || !key) return;
-
-  document.getElementById('decrypt-result').style.display = 'none';
-  document.getElementById('decrypt-fail').style.display = 'none';
-
-  const btn = document.getElementById('btn-decrypt');
-  btn.disabled = true;
-  btn.textContent = '⏳ 解密中...';
-
-  try {
-    // 1. Draw image to canvas
-    const canvas = document.createElement('canvas');
-    canvas.width = decryptImg.width;
-    canvas.height = decryptImg.height;
-    const ctx = canvas.getContext('2d');
-    ctx.drawImage(decryptImg, 0, 0);
-
-    // 2. Try to detect QR code
-    let qrData = detectQR(canvas);
-
-    // 3. If not found, try scanning different regions
-    if (!qrData) {
-      // Try each corner
-      const regions = [
-        { x: 0, y: 0, w: canvas.width * 0.3, h: canvas.height * 0.3 },
-        { x: canvas.width * 0.7, y: 0, w: canvas.width * 0.3, h: canvas.height * 0.3 },
-        { x: 0, y: canvas.height * 0.7, w: canvas.width * 0.3, h: canvas.height * 0.3 },
-        { x: canvas.width * 0.7, y: canvas.height * 0.7, w: canvas.width * 0.3, h: canvas.height * 0.3 },
-        { x: canvas.width * 0.35, y: canvas.height * 0.35, w: canvas.width * 0.3, h: canvas.height * 0.3 },
-      ];
-      for (const r of regions) {
-        const regionCanvas = document.createElement('canvas');
-        regionCanvas.width = Math.floor(r.w);
-        regionCanvas.height = Math.floor(r.h);
-        const rCtx = regionCanvas.getContext('2d');
-        rCtx.drawImage(canvas, r.x, r.y, r.w, r.h, 0, 0, r.w, r.h);
-        qrData = detectQR(regionCanvas);
-        if (qrData) break;
+    ctx.drawImage(lsbImg.enc, 0, 0);
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const pixels = imageData.data;
+    const capacityBytes = Math.floor(pixels.length / 8); // 3 bits per pixel, 8 bits per byte → need ~3 pixels per byte
+    if (payload.length > capacityBytes) {
+      alert(`图片容量不足！需要 ${payload.length} bytes，最大 ${capacityBytes} bytes。请使用更大的图片。`);
+      btn.disabled = false; btn.textContent = '生成隐写图片';
+      return;
+    }
+    // Embed payload length first (4 bytes = 32 bits, need 32*3=96 pixels)
+    const header = new Uint8Array(4 + payload.length);
+    header[0] = (payload.length >> 24) & 0xff;
+    header[1] = (payload.length >> 16) & 0xff;
+    header[2] = (payload.length >> 8) & 0xff;
+    header[3] = payload.length & 0xff;
+    header.set(payload, 4);
+    // LSB embed: 1 bit per channel (R,G,B), skip A
+    let bitIdx = 0;
+    const totalBits = header.length * 8;
+    for (let i = 0; i < pixels.length && bitIdx < totalBits; i += 4) {
+      for (let ch = 0; ch < 3 && bitIdx < totalBits; ch++) {
+        const bit = (header[bitIdx >> 3] >> (7 - (bitIdx & 7))) & 1;
+        pixels[i + ch] = (pixels[i + ch] & 0xFE) | bit;
+        bitIdx++;
       }
     }
-
-    if (!qrData) {
-      document.getElementById('decrypt-fail').style.display = 'block';
-      return;
-    }
-
-    // 4. Parse REDS: prefix
-    if (!qrData.startsWith('REDS:')) {
-      document.getElementById('decrypt-fail').style.display = 'block';
-      return;
-    }
-
-    const hexStr = qrData.slice(5);
-    const encrypted = new Uint8Array(hexStr.match(/.{2}/g).map(h => parseInt(h, 16)));
-
-    // 5. XOR decrypt
-    const plainText = xorDecrypt(encrypted, key);
-
-    // 6. Show result
-    document.getElementById('decrypt-text').textContent = plainText;
-    document.getElementById('decrypt-result').style.display = 'block';
-  } catch (e) {
-    document.getElementById('decrypt-fail').style.display = 'block';
-  }
-
-  btn.disabled = false;
-  btn.textContent = '解密提取密文';
+    ctx.putImageData(imageData, 0, 0);
+    const url = canvas.toDataURL('image/png');
+    document.getElementById('lsb-enc-output').src = url;
+    document.getElementById('lsb-enc-download').href = url;
+    document.getElementById('lsb-enc-download').download = 'redsecret_lsb_' + Date.now() + '.png';
+    show('lsb-enc-result');
+  } catch (e) { alert('加密失败: ' + e.message); }
+  btn.disabled = false; btn.textContent = '生成隐写图片';
 }
 
-// === Drag & Drop ===
-['encrypt-upload', 'decrypt-upload'].forEach(id => {
-  const zone = document.getElementById(id);
-  zone.addEventListener('dragover', (e) => { e.preventDefault(); zone.classList.add('dragover'); });
-  zone.addEventListener('dragleave', () => { zone.classList.remove('dragover'); });
-  zone.addEventListener('drop', (e) => {
-    e.preventDefault();
-    zone.classList.remove('dragover');
-    const input = zone.querySelector('input[type=file]');
-    if (input && e.dataTransfer.files.length) {
-      input.files = e.dataTransfer.files;
-      input.dispatchEvent(new Event('change'));
+// ============ LSB DECRYPT ============
+function doLsbDecrypt() {
+  const key = document.getElementById('lsb-dec-key').value.trim();
+  if (!lsbImg.dec || !key) return;
+  hide('lsb-dec-result'); hide('lsb-dec-fail');
+  const btn = document.getElementById('lsb-dec-btn');
+  btn.disabled = true; btn.textContent = '⏳ 解密中...';
+  try {
+    const canvas = document.createElement('canvas');
+    canvas.width = lsbImg.dec.width; canvas.height = lsbImg.dec.height;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(lsbImg.dec, 0, 0);
+    const pixels = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+    // Extract bits from LSB
+    function extractBits(startBit, count) {
+      const result = new Uint8Array(Math.ceil(count / 8));
+      for (let i = 0; i < count; i++) {
+        const pixelIdx = Math.floor((startBit + i) * 3 / 3) * 4; // wrong calc
+        // Correct: bit N comes from channel (N%3) of pixel (N/3)
+        const globalBit = startBit + i;
+        const pixel = Math.floor(globalBit / 3);
+        const channel = globalBit % 3;
+        const bit = (pixels[pixel * 4 + channel] & 1);
+        result[i >> 3] |= bit << (7 - (i & 7));
+      }
+      return result;
     }
+    // Read 4-byte length header
+    const lenBytes = extractBits(0, 32);
+    const dataLen = (lenBytes[0] << 24) | (lenBytes[1] << 16) | (lenBytes[2] << 8) | lenBytes[3];
+    if (dataLen <= 0 || dataLen > 100000) { show('lsb-dec-fail'); return; }
+    // Read payload
+    const payloadData = extractBits(32, dataLen * 8);
+    const payload = new Uint8Array(payloadData.buffer, payloadData.byteOffset, dataLen);
+    const data = parsePayload(payload);
+    if (!data) { show('lsb-dec-fail'); return; }
+    const plain = new TextDecoder().decode(xorCrypt(data, key));
+    document.getElementById('lsb-dec-text').textContent = plain;
+    show('lsb-dec-result');
+  } catch (e) { show('lsb-dec-fail'); }
+  btn.disabled = false; btn.textContent = '解密提取密文';
+}
+
+function updateLsbCapacity(img) {
+  const totalPixels = img.width * img.height;
+  const capacityBytes = Math.floor((totalPixels * 3) / 8) - 4; // minus 4 byte header
+  document.getElementById('lsb-max-bytes').textContent = capacityBytes.toLocaleString();
+  document.getElementById('lsb-max-chars').textContent = Math.floor(capacityBytes / 3).toLocaleString(); // ~3 bytes per CJK char
+  show('lsb-capacity');
+}
+
+// ============ ZERO-WIDTH CHARACTERS ============
+// Map: 0→U+200B (zero-width space), 1→U+200C (zero-width non-joiner), 2→U+200D (zero-width joiner), 3→U+FEFF (BOM)
+const ZW_CHARS = ['\u200B', '\u200C', '\u200D', '\uFEFF'];
+const ZW_MAP = {};
+ZW_CHARS.forEach((c, i) => ZW_MAP[i] = c);
+const ZW_REV = {};
+ZW_CHARS.forEach((c, i) => ZW_REV[c] = i);
+
+function bytesToZw(bytes) {
+  // Convert each byte to 4 base-4 digits (2 bits each)
+  let result = '';
+  for (const b of bytes) {
+    for (let shift = 6; shift >= 0; shift -= 2) {
+      result += ZW_MAP[(b >> shift) & 3];
+    }
+  }
+  return result;
+}
+
+function zwToBytes(zw) {
+  const bytes = new Uint8Array(Math.floor(zw.length / 4));
+  for (let i = 0; i < bytes.length; i++) {
+    let b = 0;
+    for (let j = 0; j < 4; j++) {
+      b = (b << 2) | (ZW_REV[zw[i * 4 + j]] || 0);
+    }
+    bytes[i] = b;
+  }
+  return bytes;
+}
+
+function extractZwChars(text) {
+  let result = '';
+  for (const ch of text) {
+    if (ZW_REV[ch] !== undefined) result += ch;
+  }
+  return result;
+}
+
+function doZwEncrypt() {
+  const text = document.getElementById('zw-enc-text').value.trim();
+  const key = document.getElementById('zw-enc-key').value.trim();
+  const cover = document.getElementById('zw-cover-text').value;
+  if (!text || !key) return;
+  try {
+    const textBytes = new TextEncoder().encode(text);
+    const encrypted = xorCrypt(textBytes, key);
+    const payload = buildPayload(encrypted);
+    const zwStr = bytesToZw(payload);
+    lastZwText = cover + zwStr;
+    document.getElementById('zw-enc-visible').textContent = cover || '(无载体文字)';
+    document.getElementById('zw-enc-hidden').textContent = `共 ${zwStr.length} 个零宽字符 · ${payload.length} bytes payload`;
+    show('zw-enc-result');
+  } catch (e) { alert('加密失败: ' + e.message); }
+}
+
+function doZwDecrypt() {
+  const text = document.getElementById('zw-dec-text').value;
+  const key = document.getElementById('zw-dec-key').value.trim();
+  if (!text || !key) return;
+  hide('zw-dec-result'); hide('zw-dec-fail');
+  try {
+    const zw = extractZwChars(text);
+    if (zw.length < 11 * 4) { show('zw-dec-fail'); return; } // minimum payload
+    const payload = zwToBytes(zw);
+    const data = parsePayload(payload);
+    if (!data) { show('zw-dec-fail'); return; }
+    const plain = new TextDecoder().decode(xorCrypt(data, key));
+    document.getElementById('zw-dec-text').textContent = plain;
+    show('zw-dec-result');
+  } catch (e) { show('zw-dec-fail'); }
+}
+
+function copyZwText() {
+  navigator.clipboard.writeText(lastZwText).then(() => {
+    const btn = document.getElementById('zw-copy-btn');
+    btn.textContent = '✓ 已复制'; btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = '📋 复制密文'; btn.classList.remove('copied'); }, 2000);
   });
+}
+
+// ============ HELPERS ============
+function show(id) { document.getElementById(id).style.display = 'block'; }
+function hide(id) { document.getElementById(id).style.display = 'none'; }
+
+// ============ INIT UPLOADS ============
+window.addEventListener('DOMContentLoaded', () => {
+  // QR uploads
+  const qrEncZone = document.getElementById('qr-enc-upload');
+  const qrEncInput = document.createElement('input');
+  qrEncInput.type = 'file'; qrEncInput.accept = 'image/*';
+  qrEncInput.addEventListener('change', function() {
+    loadImage(this, qrImg, 'enc', 'qr-enc-upload', null);
+    document.getElementById('qr-enc-btn').disabled = false;
+  });
+  qrEncZone.appendChild(qrEncInput);
+  setupUpload('qr-enc-upload');
+
+  const qrDecZone = document.getElementById('qr-dec-upload');
+  const qrDecInput = document.createElement('input');
+  qrDecInput.type = 'file'; qrDecInput.accept = 'image/*';
+  qrDecInput.addEventListener('change', function() {
+    loadImage(this, qrImg, 'dec', 'qr-dec-upload', null);
+    document.getElementById('qr-dec-btn').disabled = false;
+  });
+  qrDecZone.appendChild(qrDecInput);
+  setupUpload('qr-dec-upload');
+
+  // LSB uploads
+  const lsbEncZone = document.getElementById('lsb-enc-upload');
+  const lsbEncInput = document.createElement('input');
+  lsbEncInput.type = 'file'; lsbEncInput.accept = 'image/*';
+  lsbEncInput.addEventListener('change', function() {
+    loadImage(this, lsbImg, 'enc', 'lsb-enc-upload', updateLsbCapacity);
+    document.getElementById('lsb-enc-btn').disabled = false;
+  });
+  lsbEncZone.appendChild(lsbEncInput);
+  setupUpload('lsb-enc-upload');
+
+  const lsbDecZone = document.getElementById('lsb-dec-upload');
+  const lsbDecInput = document.createElement('input');
+  lsbDecInput.type = 'file'; lsbDecInput.accept = 'image/*';
+  lsbDecInput.addEventListener('change', function() {
+    loadImage(this, lsbImg, 'dec', 'lsb-dec-upload', null);
+    document.getElementById('lsb-dec-btn').disabled = false;
+  });
+  lsbDecZone.appendChild(lsbDecInput);
+  setupUpload('lsb-dec-upload');
 });
 </script>
 </body>

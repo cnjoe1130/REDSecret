@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>REDSecret Logo</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    width: 512px;
+    height: 512px;
+    background: #1a1a2e;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-family: 'SF Pro Display', -apple-system, 'Helvetica Neue', sans-serif;
+    overflow: hidden;
+  }
+  .logo-container {
+    text-align: center;
+  }
+  .brand {
+    font-size: 52px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: #ffffff;
+    line-height: 1;
+  }
+  .brand .red {
+    color: #ff4757;
+  }
+  .brand .dot {
+    color: #ff4757;
+  }
+  .tagline {
+    margin-top: 18px;
+    font-size: 14px;
+    color: rgba(255,255,255,0.45);
+    letter-spacing: 4px;
+    text-transform: uppercase;
+  }
+  .eye-icon {
+    margin-bottom: 28px;
+    width: 80px;
+    height: 80px;
+    position: relative;
+  }
+  .eye-icon svg {
+    width: 80px;
+    height: 80px;
+  }
+  .hidden-line {
+    margin-top: 20px;
+    width: 60px;
+    height: 2px;
+    background: #ff4757;
+    opacity: 0.6;
+  }
+</style>
+</head>
+<body>
+  <div class="logo-container">
+    <div class="eye-icon">
+      <svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- Eye shape -->
+        <path d="M10 40C10 40 25 18 40 18C55 18 70 40 70 40C70 40 55 62 40 62C25 62 10 40 10 40Z" 
+              stroke="#ff4757" stroke-width="2.5" fill="none" opacity="0.7"/>
+        <!-- Pupil -->
+        <circle cx="40" cy="40" r="10" fill="#ff4757" opacity="0.8"/>
+        <circle cx="40" cy="40" r="5" fill="#1a1a2e"/>
+        <!-- Slash (hidden/redacted) -->
+        <line x1="16" y1="56" x2="64" y2="24" stroke="#1a1a2e" stroke-width="3" stroke-linecap="round"/>
+        <!-- Small dots on slash -->
+        <circle cx="24" cy="50" r="1.5" fill="#ff4757" opacity="0.4"/>
+        <circle cx="56" cy="30" r="1.5" fill="#ff4757" opacity="0.4"/>
+      </svg>
+    </div>
+    <div class="brand">
+      <span class="red">RED</span><span>Secret</span>
+    </div>
+    <div class="hidden-line"></div>
+    <div class="tagline">Hidden in Plain Sight</div>
+  </div>
+</body>
+</html>
