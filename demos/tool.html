@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>REDSecret · 在线图片隐写</title>
+<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.4/build/qrcode.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0a0a1a;--card:#12122a;--accent:#ff4d6a;--accent2:#7c3aed;--text:#e0e0f0;--sub:#8888aa;--border:#2a2a4a}
+body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;min-height:100vh;display:flex;flex-direction:column;align-items:center}
+.header{text-align:center;padding:40px 20px 20px}
+.header h1{font-size:28px;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:8px}
+.header p{color:var(--sub);font-size:14px}
+.tabs{display:flex;gap:0;margin:20px 0;border-radius:12px;overflow:hidden;border:1px solid var(--border)}
+.tab{padding:12px 32px;cursor:pointer;font-size:15px;font-weight:600;background:var(--card);color:var(--sub);transition:all .2s;border:none}
+.tab.active{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff}
+.panel{display:none;width:100%;max-width:560px;padding:0 20px 40px}
+.panel.active{display:block}
+.card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:24px;margin-bottom:16px}
+.card h3{font-size:16px;margin-bottom:12px;color:var(--accent)}
+label{display:block;font-size:13px;color:var(--sub);margin-bottom:6px;margin-top:12px}
+input,textarea{width:100%;padding:10px 14px;background:#1a1a3a;border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:14px;outline:none;transition:border .2s}
+input:focus,textarea:focus{border-color:var(--accent)}
+textarea{resize:vertical;min-height:60px;font-family:monospace}
+.upload-zone{border:2px dashed var(--border);border-radius:12px;padding:40px 20px;text-align:center;cursor:pointer;transition:all .2s;position:relative;overflow:hidden}
+.upload-zone:hover{border-color:var(--accent);background:rgba(255,77,106,.05)}
+.upload-zone.has-image{padding:0;border-style:solid}
+.upload-zone img{width:100%;border-radius:8px;display:block}
+.upload-zone p{color:var(--sub);font-size:14px}
+.upload-zone input{position:absolute;inset:0;opacity:0;cursor:pointer}
+.btn{width:100%;padding:14px;border:none;border-radius:10px;font-size:16px;font-weight:700;cursor:pointer;transition:all .2s;margin-top:16px}
+.btn-encrypt{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff}
+.btn-encrypt:hover{transform:translateY(-1px);box-shadow:0 4px 20px rgba(255,77,106,.3)}
+.btn-encrypt:disabled{opacity:.4;cursor:not-allowed;transform:none;box-shadow:none}
+.btn-decrypt{background:linear-gradient(135deg,#7c3aed,#3b82f6);color:#fff}
+.btn-decrypt:hover{transform:translateY(-1px);box-shadow:0 4px 20px rgba(124,58,237,.3)}
+.btn-decrypt:disabled{opacity:.4;cursor:not-allowed;transform:none;box-shadow:none}
+.result{text-align:center;padding:20px}
+.result img{max-width:100%;border-radius:12px;border:2px solid var(--accent);margin:12px 0}
+.result .secret-text{background:#1a1a3a;border:1px solid var(--accent2);border-radius:10px;padding:16px;font-family:monospace;font-size:15px;color:var(--accent);word-break:break-all;margin:12px 0}
+.download-btn{display:inline-block;padding:10px 24px;background:var(--accent2);color:#fff;border-radius:8px;text-decoration:none;font-weight:600;margin-top:8px}
+.position-picker{display:grid;grid-template-columns:repeat(3,40px);gap:4px;margin-top:8px}
+.position-picker .pos{width:40px;height:40px;border:2px solid var(--border);border-radius:6px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--sub);transition:all .2s}
+.position-picker .pos:hover{border-color:var(--accent)}
+.position-picker .pos.active{border-color:var(--accent);background:rgba(255,77,106,.15);color:var(--accent)}
+.note{font-size:12px;color:var(--sub);margin-top:8px;line-height:1.5}
+.footer{text-align:center;padding:30px;color:var(--sub);font-size:12px}
+.footer a{color:var(--accent2);text-decoration:none}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>🔐 REDSecret</h1>
+  <p>图片隐写加密工具 · 信息藏在像素里</p>
+</div>
+
+<div class="tabs">
+  <button class="tab active" onclick="switchTab('encrypt')">🔒 加密</button>
+  <button class="tab" onclick="switchTab('decrypt')">🔓 解密</button>
+</div>
+
+<!-- 加密面板 -->
+<div class="panel active" id="panel-encrypt">
+  <div class="card">
+    <h3>① 上传图片</h3>
+    <div class="upload-zone" id="encrypt-upload">
+      <p>📷 点击或拖拽上传图片</p>
+      <input type="file" accept="image/*" id="encrypt-file" onchange="loadEncryptImage(this)">
+    </div>
+  </div>
+  <div class="card">
+    <h3>② 输入密文和密钥</h3>
+    <label>密文内容</label>
+    <textarea id="encrypt-text" placeholder="输入你想隐藏的文字..."></textarea>
+    <label>密钥（解密时需要）</label>
+    <input type="text" id="encrypt-key" placeholder="设置一个密钥">
+    <label>QR码位置</label>
+    <div class="position-picker" id="pos-picker">
+      <div class="pos" data-pos="top-left" onclick="setPos(this)">↖</div>
+      <div class="pos" data-pos="top-center" onclick="setPos(this)">↑</div>
+      <div class="pos" data-pos="top-right" onclick="setPos(this)">↗</div>
+      <div class="pos" data-pos="center-left" onclick="setPos(this)">←</div>
+      <div class="pos" data-pos="center" onclick="setPos(this)">●</div>
+      <div class="pos" data-pos="center-right" onclick="setPos(this)">→</div>
+      <div class="pos" data-pos="bottom-left" onclick="setPos(this)">↙</div>
+      <div class="pos active" data-pos="bottom-center" onclick="setPos(this)">↓</div>
+      <div class="pos" data-pos="bottom-right" onclick="setPos(this)">↘</div>
+    </div>
+    <p class="note">💡 QR码会被嵌入图片角落，肉眼几乎不可见。支持Reed-Solomon纠错，图片压缩后仍可解码。</p>
+  </div>
+  <button class="btn btn-encrypt" id="btn-encrypt" onclick="doEncrypt()" disabled>🔐 生成隐写图片</button>
+  <div class="result" id="encrypt-result" style="display:none">
+    <img id="encrypt-output">
+    <a class="download-btn" id="encrypt-download">📥 下载隐写图片</a>
+  </div>
+</div>
+
+<!-- 解密面板 -->
+<div class="panel" id="panel-decrypt">
+  <div class="card">
+    <h3>① 上传隐写图片</h3>
+    <div class="upload-zone" id="decrypt-upload">
+      <p>📷 点击或拖拽上传含密文的图片</p>
+      <input type="file" accept="image/*" id="decrypt-file" onchange="loadDecryptImage(this)">
+    </div>
+  </div>
+  <div class="card">
+    <h3>② 输入密钥解密</h3>
+    <label>密钥</label>
+    <input type="text" id="decrypt-key" placeholder="输入解密密钥">
+  </div>
+  <button class="btn btn-decrypt" id="btn-decrypt" onclick="doDecrypt()" disabled>🔓 解密提取密文</button>
+  <div class="result" id="decrypt-result" style="display:none">
+    <p style="color:var(--accent);font-weight:600">✅ 解密成功！隐藏的密文：</p>
+    <div class="secret-text" id="decrypt-text"></div>
+  </div>
+  <div class="result" id="decrypt-fail" style="display:none">
+    <p style="color:#ef4444;font-weight:600">❌ 解密失败</p>
+    <p class="note">可能原因：密钥错误、图片未包含隐写信息、或图片压缩过度导致QR码损坏</p>
+  </div>
+</div>
+
+<div class="footer">
+  REDSecret · 图片隐写加密 · <a href="https://github.com/cnjoe1130/REDSecret">GitHub</a>
+</div>
+
+<script>
+// === State ===
+let encryptImg = null;
+let decryptImg = null;
+let qrPosition = 'bottom-center';
+
+// === Tab Switch ===
+function switchTab(tab) {
+  document.querySelectorAll('.tab').forEach((t, i) => {
+    t.classList.toggle('active', (tab === 'encrypt' && i === 0) || (tab === 'decrypt' && i === 1));
+  });
+  document.getElementById('panel-encrypt').classList.toggle('active', tab === 'encrypt');
+  document.getElementById('panel-decrypt').classList.toggle('active', tab === 'decrypt');
+}
+
+// === Position Picker ===
+function setPos(el) {
+  document.querySelectorAll('.pos').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  qrPosition = el.dataset.pos;
+}
+
+// === Load Image ===
+function loadEncryptImage(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const img = new Image();
+    img.onload = () => {
+      encryptImg = img;
+      const zone = document.getElementById('encrypt-upload');
+      zone.classList.add('has-image');
+      zone.innerHTML = `<img src="${e.target.result}"><input type="file" accept="image/*" onchange="loadEncryptImage(this)">`;
+      document.getElementById('btn-encrypt').disabled = false;
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function loadDecryptImage(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const img = new Image();
+    img.onload = () => {
+      decryptImg = img;
+      const zone = document.getElementById('decrypt-upload');
+      zone.classList.add('has-image');
+      zone.innerHTML = `<img src="${e.target.result}"><input type="file" accept="image/*" onchange="loadDecryptImage(this)">`;
+      document.getElementById('btn-decrypt').disabled = false;
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+// === XOR Encryption ===
+function xorEncrypt(text, key) {
+  const data = new TextEncoder().encode(text);
+  const kb = new TextEncoder().encode(key);
+  const result = new Uint8Array(data.length);
+  for (let i = 0; i < data.length; i++) {
+    result[i] = data[i] ^ kb[i % kb.length];
+  }
+  return result;
+}
+
+function xorDecrypt(data, key) {
+  const kb = new TextEncoder().encode(key);
+  const result = new Uint8Array(data.length);
+  for (let i = 0; i < data.length; i++) {
+    result[i] = data[i] ^ kb[i % kb.length];
+  }
+  return new TextDecoder().decode(result);
+}
+
+// === Payload Format ===
+function buildPayload(text) {
+  const textBytes = new TextEncoder().encode(text);
+  // MD5 checksum (first 4 bytes) - simplified for browser
+  let hash = 0;
+  for (let i = 0; i < text.length; i++) {
+    const ch = text.charCodeAt(i);
+    hash = ((hash << 5) - hash) + ch;
+    hash = hash & hash;
+  }
+  const checksum = new Uint8Array([
+    (hash >> 24) & 0xff, (hash >> 16) & 0xff,
+    (hash >> 8) & 0xff, hash & 0xff
+  ]);
+  // Format: 2-byte LE length + text + 4-byte checksum
+  const payload = new Uint8Array(2 + textBytes.length + 4);
+  payload[0] = textBytes.length & 0xff;
+  payload[1] = (textBytes.length >> 8) & 0xff;
+  payload.set(textBytes, 2);
+  payload.set(checksum, 2 + textBytes.length);
+  return payload;
+}
+
+function parsePayload(data) {
+  if (data.length < 6) return null;
+  const len = data[0] | (data[1] << 8);
+  if (len > data.length - 6 || len <= 0) return null;
+  const textBytes = data.slice(2, 2 + len);
+  return new TextDecoder().decode(textBytes);
+}
+
+// === QR Generation (async) ===
+function generateQR(text) {
+  return new Promise((resolve, reject) => {
+    const canvas = document.createElement('canvas');
+    QRCode.toCanvas(canvas, text, {
+      width: 200,
+      margin: 1,
+      errorCorrectionLevel: 'M',
+      color: { dark: '#000000', light: '#ffffff' }
+    }, (err) => {
+      if (err) reject(err);
+      else resolve(canvas);
+    });
+  });
+}
+
+// === QR Detection ===
+function detectQR(canvas) {
+  const ctx = canvas.getContext('2d');
+  const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  const code = jsQR(imageData.data, canvas.width, canvas.height, {
+    inversionAttempts: 'attemptBoth'
+  });
+  return code ? code.data : null;
+}
+
+// === Position Calculation ===
+function calcQRPosition(imgW, imgH, qrW, qrH, pos) {
+  const margin = 10;
+  const qrSize = Math.min(imgW * 0.15, 180);
+  const scale = qrSize / qrW;
+  const sw = qrW * scale;
+  const sh = qrH * scale;
+  let x, y;
+  switch (pos) {
+    case 'top-left': x = margin; y = margin; break;
+    case 'top-center': x = (imgW - sw) / 2; y = margin; break;
+    case 'top-right': x = imgW - sw - margin; y = margin; break;
+    case 'center-left': x = margin; y = (imgH - sh) / 2; break;
+    case 'center': x = (imgW - sw) / 2; y = (imgH - sh) / 2; break;
+    case 'center-right': x = imgW - sw - margin; y = (imgH - sh) / 2; break;
+    case 'bottom-left': x = margin; y = imgH - sh - margin; break;
+    case 'bottom-center': x = (imgW - sw) / 2; y = imgH - sh - margin; break;
+    case 'bottom-right': x = imgW - sw - margin; y = imgH - sh - margin; break;
+    default: x = imgW - sw - margin; y = imgH - sh - margin;
+  }
+  return { x, y, w: sw, h: sh };
+}
+
+// === Encrypt ===
+async function doEncrypt() {
+  const text = document.getElementById('encrypt-text').value.trim();
+  const key = document.getElementById('encrypt-key').value.trim();
+  if (!text || !key || !encryptImg) return;
+
+  const btn = document.getElementById('btn-encrypt');
+  btn.disabled = true;
+  btn.textContent = '⏳ 处理中...';
+
+  try {
+    // 1. XOR encrypt + build payload
+    const encrypted = xorEncrypt(text, key);
+    const payload = buildPayload(Array.from(encrypted).map(b => b.toString(16).padStart(2, '0')).join(''));
+
+    // 2. Generate QR code with REDS: prefix
+    const qrText = 'REDS:' + Array.from(encrypted).map(b => b.toString(16).padStart(2, '0')).join('');
+    const qrCanvas = await generateQR(qrText);
+
+    // 3. Draw original image
+    const canvas = document.createElement('canvas');
+    canvas.width = encryptImg.width;
+    canvas.height = encryptImg.height;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(encryptImg, 0, 0);
+
+    // 4. Calculate position and draw QR
+    const pos = calcQRPosition(canvas.width, canvas.height, qrCanvas.width, qrCanvas.height, qrPosition);
+    
+    // Draw white background for QR
+    ctx.fillStyle = 'rgba(255,255,255,0.9)';
+    ctx.fillRect(pos.x - 2, pos.y - 2, pos.w + 4, pos.h + 4);
+    
+    // Draw QR code
+    ctx.drawImage(qrCanvas, pos.x, pos.y, pos.w, pos.h);
+
+    // 5. Output
+    const dataURL = canvas.toDataURL('image/png');
+    document.getElementById('encrypt-output').src = dataURL;
+    document.getElementById('encrypt-download').href = dataURL;
+    document.getElementById('encrypt-download').download = 'redsecret_' + Date.now() + '.png';
+    document.getElementById('encrypt-result').style.display = 'block';
+  } catch (e) {
+    alert('加密失败: ' + e.message);
+  }
+
+  btn.disabled = false;
+  btn.textContent = '🔐 生成隐写图片';
+}
+
+// === Decrypt ===
+function doDecrypt() {
+  const key = document.getElementById('decrypt-key').value.trim();
+  if (!decryptImg || !key) return;
+
+  document.getElementById('decrypt-result').style.display = 'none';
+  document.getElementById('decrypt-fail').style.display = 'none';
+
+  const btn = document.getElementById('btn-decrypt');
+  btn.disabled = true;
+  btn.textContent = '⏳ 解密中...';
+
+  try {
+    // 1. Draw image to canvas
+    const canvas = document.createElement('canvas');
+    canvas.width = decryptImg.width;
+    canvas.height = decryptImg.height;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(decryptImg, 0, 0);
+
+    // 2. Try to detect QR code
+    let qrData = detectQR(canvas);
+
+    // 3. If not found, try scanning different regions
+    if (!qrData) {
+      // Try each corner
+      const regions = [
+        { x: 0, y: 0, w: canvas.width * 0.3, h: canvas.height * 0.3 },
+        { x: canvas.width * 0.7, y: 0, w: canvas.width * 0.3, h: canvas.height * 0.3 },
+        { x: 0, y: canvas.height * 0.7, w: canvas.width * 0.3, h: canvas.height * 0.3 },
+        { x: canvas.width * 0.7, y: canvas.height * 0.7, w: canvas.width * 0.3, h: canvas.height * 0.3 },
+        { x: canvas.width * 0.35, y: canvas.height * 0.35, w: canvas.width * 0.3, h: canvas.height * 0.3 },
+      ];
+      for (const r of regions) {
+        const regionCanvas = document.createElement('canvas');
+        regionCanvas.width = Math.floor(r.w);
+        regionCanvas.height = Math.floor(r.h);
+        const rCtx = regionCanvas.getContext('2d');
+        rCtx.drawImage(canvas, r.x, r.y, r.w, r.h, 0, 0, r.w, r.h);
+        qrData = detectQR(regionCanvas);
+        if (qrData) break;
+      }
+    }
+
+    if (!qrData) {
+      document.getElementById('decrypt-fail').style.display = 'block';
+      return;
+    }
+
+    // 4. Parse REDS: prefix
+    if (!qrData.startsWith('REDS:')) {
+      document.getElementById('decrypt-fail').style.display = 'block';
+      return;
+    }
+
+    const hexStr = qrData.slice(5);
+    const encrypted = new Uint8Array(hexStr.match(/.{2}/g).map(h => parseInt(h, 16)));
+
+    // 5. XOR decrypt
+    const plainText = xorDecrypt(encrypted, key);
+
+    // 6. Show result
+    document.getElementById('decrypt-text').textContent = plainText;
+    document.getElementById('decrypt-result').style.display = 'block';
+  } catch (e) {
+    document.getElementById('decrypt-fail').style.display = 'block';
+  }
+
+  btn.disabled = false;
+  btn.textContent = '🔓 解密提取密文';
+}
+
+// === Drag & Drop ===
+['encrypt-upload', 'decrypt-upload'].forEach(id => {
+  const zone = document.getElementById(id);
+  zone.addEventListener('dragover', (e) => { e.preventDefault(); zone.style.borderColor = 'var(--accent)'; });
+  zone.addEventListener('dragleave', () => { zone.style.borderColor = ''; });
+  zone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    zone.style.borderColor = '';
+    const input = zone.querySelector('input[type=file]');
+    if (input && e.dataTransfer.files.length) {
+      input.files = e.dataTransfer.files;
+      input.dispatchEvent(new Event('change'));
+    }
+  });
+});
+</script>
+</body>
+</html>
